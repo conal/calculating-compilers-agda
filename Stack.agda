@@ -263,9 +263,9 @@ progFun-comp (sp g') (sp f') =
   begin
     progFun (sp g' ∘c sp f')
   ≡⟨⟩
-    progFun (sp (f' ++ g'))
+    progFun (sp (g' ∘c f'))
   ≡⟨⟩
-    sf (evalStackOps (f' ++ g'))
+    sf (evalStackOps (g' ∘c f'))
   ≡⟨ cong sf (ext-i (evalSO-comp f' g')) ⟩
     sf (evalStackOps g' ∘ evalStackOps f')
   ≡⟨⟩
