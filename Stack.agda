@@ -82,10 +82,10 @@ instance
 
 -- Homomorphisms
 
-stackFun-id : stackFun id ≡ id-sf {A}
+.stackFun-id : stackFun id ≡ id-sf {A}
 stackFun-id = refl
 
-stackFun-comp : ∀ {g : B → C} {f : A → B} → stackFun (g ∘ f) ≡ stackFun g ∘sf stackFun f
+.stackFun-comp : ∀ {g : B → C} {f : A → B} → stackFun (g ∘ f) ≡ stackFun g ∘sf stackFun f
 stackFun-comp = refl
 
 record MonoidalP (_→k_ : Set → Set → Set) : Set where
@@ -148,17 +148,11 @@ instance
      }
 
 firstSF : ∀ {A B C : Set} → StackFun A C → StackFun (A × B) (C × B)
--- firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
--- firstSF (sf f) = sf ((λ {(c , (b , z)) → (c , b) , z}) ∘ f ∘ rassoc)
--- firstSF (sf f) = sf (λ {((a , b) , z) → f (a , b) , z})  -- bad
-firstSF (sf f) = sf (first f)  -- same bad
+firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
+-- firstSF (sf f) = sf (first f)  -- bad
 
 stackFun-first : ∀ { f : A → C } → firstSF {B = B} (stackFun f) ≡ stackFun (first f)
--- stackFun-first = refl
 stackFun-first = refl
-
--- -- Synthesized but not what we want:
--- firstSF (sf f) = sf (λ {((a , b) , z) → f (a , b) , z})
 
 secondSF : StackFun B D → StackFun (A × B) (A × D)
 secondSF g = swap ∘c firstSF g ∘c swap
@@ -204,17 +198,17 @@ _++_ : StackOps A B → StackOps B C → StackOps A C
 [] ++ ops′ = ops′
 (op ∷ ops) ++ ops′ = op ∷ (ops ++ ops′)
 
-++-[] : ∀ {p : StackOps A B} → p ++ [] ≡ p
+.++-[] : ∀ {p : StackOps A B} → p ++ [] ≡ p
 ++-[] {p = []} = refl
 ++-[] {p = x ∷ p} = cong (x ∷_) ++-[]
 {-# REWRITE ++-[] #-}
 
-++-++ : ∀ {p : StackOps A B} {p′ : StackOps B C} {p″ : StackOps C D} → p ++ p′ ++ p″ ≡ (p ++ p′) ++ p″
+.++-++ : ∀ {p : StackOps A B} {p′ : StackOps B C} {p″ : StackOps C D} → p ++ p′ ++ p″ ≡ (p ++ p′) ++ p″
 ++-++ {p = []} {p′} {p″} = refl
 ++-++ {p = x ∷ p} {p′} {p″} = cong (x ∷_) (++-++ {p = p} {p′} {p″})
 {-# REWRITE ++-++ #-}
 
-evalSO-assoc : ∀ (ops : StackOps A B) (ops′ : StackOps B C) 
+.evalSO-assoc : ∀ (ops : StackOps A B) (ops′ : StackOps B C) 
              -> evalStackOps (ops ++ ops′) ≡ evalStackOps ops′ ∘ evalStackOps ops
 evalSO-assoc [] ops′ = refl
 evalSO-assoc (op ∷ ops) ops′ =
@@ -248,7 +242,7 @@ instance
 progFun : StackProg A B → StackFun A B
 progFun (sp ops) = sf (evalStackOps ops)
 
-progFun-id : progFun (idc {A = A}) ≡ idc
+.progFun-id : progFun (idc {A = A}) ≡ idc
 progFun-id = refl
 
 .progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B) → progFun (g ∘c f) ≡ progFun g ∘c progFun f
