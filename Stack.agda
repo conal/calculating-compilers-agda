@@ -198,17 +198,18 @@ _++_ : StackOps A B → StackOps B C → StackOps A C
 [] ++ ops′ = ops′
 (op ∷ ops) ++ ops′ = op ∷ (ops ++ ops′)
 
-.++-[] : ∀ {p : StackOps A B} → p ++ [] ≡ p
-++-[] {p = []} = refl
-++-[] {p = x ∷ p} = cong (x ∷_) ++-[]
-{-# REWRITE ++-[] #-}
+.++-id : ∀ (p : StackOps A B) → p ++ [] ≡ p
+++-id [] = refl
+++-id (x ∷ p) = cong (x ∷_) (++-id p)
+{-# REWRITE ++-id #-}
 
-.++-++ : ∀ {p : StackOps A B} {p′ : StackOps B C} {p″ : StackOps C D} → p ++ p′ ++ p″ ≡ (p ++ p′) ++ p″
-++-++ {p = []} {p′} {p″} = refl
-++-++ {p = x ∷ p} {p′} {p″} = cong (x ∷_) (++-++ {p = p} {p′} {p″})
-{-# REWRITE ++-++ #-}
+.++-assoc : ∀ (p : StackOps A B) (p′ : StackOps B C) (p″ : StackOps C D)
+          → p ++ (p′ ++ p″) ≡ (p ++ p′) ++ p″
+++-assoc [] _ _ = refl
+++-assoc (x ∷ p) p′ p″ = cong (x ∷_) (++-assoc p p′ p″)
+{-# REWRITE ++-assoc #-}
 
-.evalSO-assoc : ∀ (ops : StackOps A B) (ops′ : StackOps B C) 
+.evalSO-assoc : ∀ (ops : StackOps A B) (ops′ : StackOps B C)
              -> evalStackOps (ops ++ ops′) ≡ evalStackOps ops′ ∘ evalStackOps ops
 evalSO-assoc [] ops′ = refl
 evalSO-assoc (op ∷ ops) ops′ =
