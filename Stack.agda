@@ -204,7 +204,7 @@ _++_ : StackOps A B → StackOps B C → StackOps A C
 {-# REWRITE ++-id #-}
 
 .++-assoc : ∀ (p : StackOps A B) (p′ : StackOps B C) (p″ : StackOps C D)
-          → p ++ (p′ ++ p″) ≡ (p ++ p′) ++ p″
+          → (p ++ p′) ++ p″ ≡ p ++ (p′ ++ p″)
 ++-assoc [] _ _ = refl
 ++-assoc (x ∷ p) p′ p″ = cong (x ∷_) (++-assoc p p′ p″)
 {-# REWRITE ++-assoc #-}
