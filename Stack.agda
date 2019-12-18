@@ -262,10 +262,3 @@ progFun-comp (sp g') (sp f') =
   ≡⟨⟩
     progFun (sp g') ∘c progFun (sp f')
   ∎
-
--- The "≡⟨ cong sf (evalSO-assoc f' g') ⟩" line yields
--- 
--- A × _Z_938 → C × _Z_938 != {Z : Set} → A × Z → C × Z because one is
--- an implicit function type and the other is an explicit function type
--- when checking that the expression evalSO-assoc f' g' has type
--- (λ {Z} → evalStackOps (f' ++ g')) ≡ _y_934
