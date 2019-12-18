@@ -218,23 +218,22 @@ instance
     id-r = refl ;
     assoc = refl }
 
-
-.evalSO-assoc : ∀ (ops : StackOps A B) (ops′ : StackOps B C)
-             -> evalStackOps (ops ++ ops′) ≡ evalStackOps ops′ ∘ evalStackOps ops
-evalSO-assoc [] ops′ = refl
-evalSO-assoc (op ∷ ops) ops′ =
+.evalSO-hom : ∀ (f : StackOps A B) (g : StackOps B C)
+             -> evalStackOps (g ∘c f) ≡ evalStackOps g ∘c evalStackOps f
+evalSO-hom [] g = refl
+evalSO-hom (op ∷ f) g =
   begin
-    evalStackOps ((op ∷ ops) ++ ops′)
+    evalStackOps (g ∘c (op ∷ f))
   ≡⟨⟩
-    evalStackOps (op ∷ (ops ++ ops′))
+    evalStackOps (op ∷ (g ∘c f))
   ≡⟨⟩
-    evalStackOps (ops ++ ops′) ∘ evalStackOp op
-  ≡⟨ cong (_∘ evalStackOp op) (evalSO-assoc ops ops′) ⟩
-    (evalStackOps ops′ ∘ evalStackOps ops) ∘ evalStackOp op
+    evalStackOps (g ∘c f) ∘ evalStackOp op
+  ≡⟨ cong (_∘ evalStackOp op) (evalSO-hom f g) ⟩
+    (evalStackOps g ∘ evalStackOps f) ∘ evalStackOp op
   ≡⟨⟩
-    evalStackOps ops′ ∘ (evalStackOps ops ∘ evalStackOp op)
+    evalStackOps g ∘ (evalStackOps f ∘ evalStackOp op)
   ≡⟨⟩
-    evalStackOps ops′ ∘ evalStackOps (op ∷ ops)
+    evalStackOps g ∘ evalStackOps (op ∷ f)
   ∎
 
 record StackProg (A : Set) (B : Set) : Set where
@@ -264,7 +263,7 @@ progFun-comp (sp g') (sp f') =
     progFun (sp (f' ++ g'))
   ≡⟨⟩
     sf (evalStackOps (f' ++ g'))
-  ≡⟨ cong sf (ext-i (evalSO-assoc f' g')) ⟩
+  ≡⟨ cong sf (ext-i (evalSO-hom f' g')) ⟩
     sf (evalStackOps g' ∘ evalStackOps f')
   ≡⟨⟩
     sf (evalStackOps g' ∘ evalStackOps f')
