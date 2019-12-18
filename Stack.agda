@@ -171,6 +171,9 @@ instance
     _×c_ = _×sf_ }
 
 
+-- Try a variation on the paper in which the "pure" StackOp contains a function
+-- rather than an opcode.
+
 data StackOp : Set → Set → Set where
   pure : (A → B) → StackOp (A × Z) (B × Z)
   push : StackOp ((A × B) × Z) (A × (B × Z))
@@ -244,6 +247,8 @@ progFun (sp ops) = sf (evalStackOps ops)
 progFun-id : progFun (idc {A = A}) ≡ idc
 progFun-id = refl
 
+{-
+
 progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B) → progFun (g ∘c f) ≡ progFun g ∘c progFun f
 progFun-comp (sp g') (sp f') =
   begin
@@ -261,6 +266,9 @@ progFun-comp (sp g') (sp f') =
   ≡⟨⟩
     progFun (sp g') ∘c progFun (sp f')
   ∎
+
+-}
+
 -- The "≡⟨ cong sf (evalSO-assoc f' g') ⟩" line yields
 -- 
 -- A × _Z_938 → C × _Z_938 != {Z : Set} → A × Z → C × Z because one is
