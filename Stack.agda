@@ -218,17 +218,20 @@ instance
     id-r = refl ;
     assoc = refl }
 
-.evalSO-hom : ∀ (f : StackOps A B) (g : StackOps B C)
+.evalSO-id : evalStackOps {A} idc ≡ idc
+evalSO-id = refl
+
+.evalSO-comp : ∀ (f : StackOps A B) (g : StackOps B C)
              -> evalStackOps (g ∘c f) ≡ evalStackOps g ∘c evalStackOps f
-evalSO-hom [] g = refl
-evalSO-hom (op ∷ f) g =
+evalSO-comp [] g = refl
+evalSO-comp (op ∷ f) g =
   begin
     evalStackOps (g ∘c (op ∷ f))
   ≡⟨⟩
     evalStackOps (op ∷ (g ∘c f))
   ≡⟨⟩
     evalStackOps (g ∘c f) ∘ evalStackOp op
-  ≡⟨ cong (_∘ evalStackOp op) (evalSO-hom f g) ⟩
+  ≡⟨ cong (_∘ evalStackOp op) (evalSO-comp f g) ⟩
     (evalStackOps g ∘ evalStackOps f) ∘ evalStackOp op
   ≡⟨⟩
     evalStackOps g ∘ (evalStackOps f ∘ evalStackOp op)
@@ -263,7 +266,7 @@ progFun-comp (sp g') (sp f') =
     progFun (sp (f' ++ g'))
   ≡⟨⟩
     sf (evalStackOps (f' ++ g'))
-  ≡⟨ cong sf (ext-i (evalSO-hom f' g')) ⟩
+  ≡⟨ cong sf (ext-i (evalSO-comp f' g')) ⟩
     sf (evalStackOps g' ∘ evalStackOps f')
   ≡⟨⟩
     sf (evalStackOps g' ∘ evalStackOps f')
