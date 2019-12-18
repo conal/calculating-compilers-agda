@@ -193,27 +193,27 @@ evalStackOps : StackOps U V → U → V
 evalStackOps [] = id
 evalStackOps (op ∷ rest) = evalStackOps rest ∘ evalStackOp op
 
-infixr 5 _++_
-_++_ : StackOps A B → StackOps B C → StackOps A C
-[] ++ ops′ = ops′
-(op ∷ ops) ++ ops′ = op ∷ (ops ++ ops′)
+infixr 5 _∘so_
+_∘so_ : StackOps B C → StackOps A B → StackOps A C
+ops′ ∘so [] = ops′
+ops′ ∘so (op ∷ ops) = op ∷ (ops′ ∘so ops)
 
-.++-id : ∀ (p : StackOps A B) → p ++ [] ≡ p
-++-id [] = refl
-++-id (x ∷ p) = cong (x ∷_) (++-id p)
-{-# REWRITE ++-id #-}
+.∘so-id : ∀ (p : StackOps A B) → [] ∘so p ≡ p
+∘so-id [] = refl
+∘so-id (x ∷ p) = cong (x ∷_) (∘so-id p)
+{-# REWRITE ∘so-id #-}
 
-.++-assoc : ∀ (p : StackOps A B) (p′ : StackOps B C) (p″ : StackOps C D)
-          → (p ++ p′) ++ p″ ≡ p ++ (p′ ++ p″)
-++-assoc [] _ _ = refl
-++-assoc (x ∷ p) p′ p″ = cong (x ∷_) (++-assoc p p′ p″)
-{-# REWRITE ++-assoc #-}
+.∘so-assoc : ∀ (p : StackOps A B) (p′ : StackOps B C) (p″ : StackOps C D)
+          → p″ ∘so (p′ ∘so p) ≡ (p″ ∘so p′) ∘so p
+∘so-assoc [] _ _ = refl
+∘so-assoc (x ∷ p) p′ p″ = cong (x ∷_) (∘so-assoc p p′ p″)
+{-# REWRITE ∘so-assoc #-}
 
 instance
   so-Category : Category StackOps
   so-Category = record {
     idc = [] ;
-    _∘c_ = flip _++_ ;
+    _∘c_ = _∘so_ ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
