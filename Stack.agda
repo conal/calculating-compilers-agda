@@ -6,7 +6,8 @@ open import Function
 
 open import Relation.Binary.PropositionalEquality as PE hiding (Extensionality)
 open PE.≡-Reasoning
-open import Axiom.Extensionality.Propositional using (Extensionality; ExtensionalityImplicit)
+open import Axiom.Extensionality.Propositional
+       using (Extensionality; ExtensionalityImplicit)
 open import Agda.Builtin.Equality.Rewrite
 
 variable
@@ -53,7 +54,8 @@ record Category (_→k_ : Set → Set → Set) : Set where
     _∘c_  : (B →k C) → (A →k B) → (A →k C)
     .id-l  : ∀ {f : A →k B} → idc ∘c f ≡ f
     .id-r  : ∀ {f : A →k B} → f ∘c idc ≡ f
-    .assoc : ∀ {h : C →k D} {g : B →k C} {f : A →k B} → (h ∘c g) ∘c f ≡ h ∘c (g ∘c f)
+    .assoc : ∀ {h : C →k D} {g : B →k C} {f : A →k B}
+           → (h ∘c g) ∘c f ≡ h ∘c (g ∘c f)
 open Category ⦃ … ⦄
 
 instance
@@ -85,7 +87,8 @@ instance
 .stackFun-id : stackFun id ≡ id-sf {A}
 stackFun-id = refl
 
-.stackFun-comp : ∀ {g : B → C} {f : A → B} → stackFun (g ∘ f) ≡ stackFun g ∘sf stackFun f
+.stackFun-comp : ∀ {g : B → C} {f : A → B}
+               → stackFun (g ∘ f) ≡ stackFun g ∘sf stackFun f
 stackFun-comp = refl
 
 record MonoidalP (_→k_ : Set → Set → Set) : Set where
@@ -151,7 +154,8 @@ firstSF : ∀ {A B C : Set} → StackFun A C → StackFun (A × B) (C × B)
 firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
 -- firstSF (sf f) = sf (first f)  -- bad
 
-.stackFun-first : ∀ { f : A → C } → firstSF {B = B} (stackFun f) ≡ stackFun (first f)
+.stackFun-first : ∀ { f : A → C }
+                → firstSF {B = B} (stackFun f) ≡ stackFun (first f)
 stackFun-first = refl
 
 secondSF : StackFun B D → StackFun (A × B) (A × D)
@@ -167,10 +171,6 @@ instance
   StackFun-MonoidalP : MonoidalP StackFun
   StackFun-MonoidalP = record {
     _×c_ = _×sf_ }
-
-
--- Try a variation on the paper in which the "pure" StackOp contains a function
--- rather than an opcode.
 
 data StackOp : Set → Set → Set where
   pure : (A → B) → StackOp (A × Z) (B × Z)
@@ -258,7 +258,8 @@ progFun (sp ops) = sf (evalStackOps ops)
 .progFun-id : progFun (idc {A = A}) ≡ idc
 progFun-id = refl
 
-.progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B) → progFun (g ∘c f) ≡ progFun g ∘c progFun f
+.progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B)
+              → progFun (g ∘c f) ≡ progFun g ∘c progFun f
 progFun-comp (sp g') (sp f') =
   begin
     progFun (sp g' ∘c sp f')
