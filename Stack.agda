@@ -209,6 +209,16 @@ _++_ : StackOps A B → StackOps B C → StackOps A C
 ++-assoc (x ∷ p) p′ p″ = cong (x ∷_) (++-assoc p p′ p″)
 {-# REWRITE ++-assoc #-}
 
+instance
+  so-Category : Category StackOps
+  so-Category = record {
+    idc = [] ;
+    _∘c_ = λ { g f → f ++ g } ;
+    id-l = refl ;
+    id-r = refl ;
+    assoc = refl }
+
+
 .evalSO-assoc : ∀ (ops : StackOps A B) (ops′ : StackOps B C)
              -> evalStackOps (ops ++ ops′) ≡ evalStackOps ops′ ∘ evalStackOps ops
 evalSO-assoc [] ops′ = refl
@@ -234,8 +244,8 @@ record StackProg (A : Set) (B : Set) : Set where
 instance
   StackProg-Category : Category StackProg
   StackProg-Category = record {
-    idc = sp [] ;
-    _∘c_ = λ { (sp g) (sp f) → sp (f ++ g) } ;
+    idc = sp idc ;
+    _∘c_ = λ { (sp g) (sp f) → sp (g ∘c f) } ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
