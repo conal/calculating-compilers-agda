@@ -6,12 +6,16 @@ open import Function
 
 open import Relation.Binary.PropositionalEquality as PE hiding (Extensionality)
 open PE.≡-Reasoning
--- open import Axiom.Extensionality.Propositional using (Extensionality; ExtensionalityImplicit)
+open import Axiom.Extensionality.Propositional using (Extensionality; ExtensionalityImplicit)
 open import Agda.Builtin.Equality.Rewrite
 
 variable
  A B C D U V Z : Set
  _→k_ : Set → Set → Set
+
+postulate
+  .ext : ∀ {α β} → Extensionality α β
+  .ext-i : ∀ {α β} → ExtensionalityImplicit α β
 
 First : Set -> Set -> Set
 First A B = ∀ {Z : Set} → A × Z → B × Z
@@ -247,9 +251,7 @@ progFun (sp ops) = sf (evalStackOps ops)
 progFun-id : progFun (idc {A = A}) ≡ idc
 progFun-id = refl
 
-{-
-
-progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B) → progFun (g ∘c f) ≡ progFun g ∘c progFun f
+.progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B) → progFun (g ∘c f) ≡ progFun g ∘c progFun f
 progFun-comp (sp g') (sp f') =
   begin
     progFun (sp g' ∘c sp f')
@@ -257,7 +259,7 @@ progFun-comp (sp g') (sp f') =
     progFun (sp (f' ++ g'))
   ≡⟨⟩
     sf (evalStackOps (f' ++ g'))
-  ≡⟨ cong sf (evalSO-assoc f' g') ⟩
+  ≡⟨ cong sf (ext-i (evalSO-assoc f' g')) ⟩
     sf (evalStackOps g' ∘ evalStackOps f')
   ≡⟨⟩
     sf (evalStackOps g' ∘ evalStackOps f')
@@ -266,8 +268,6 @@ progFun-comp (sp g') (sp f') =
   ≡⟨⟩
     progFun (sp g') ∘c progFun (sp f')
   ∎
-
--}
 
 -- The "≡⟨ cong sf (evalSO-assoc f' g') ⟩" line yields
 -- 
