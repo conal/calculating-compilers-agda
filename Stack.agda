@@ -151,7 +151,7 @@ firstSF : ∀ {A B C : Set} → StackFun A C → StackFun (A × B) (C × B)
 firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
 -- firstSF (sf f) = sf (first f)  -- bad
 
-stackFun-first : ∀ { f : A → C } → firstSF {B = B} (stackFun f) ≡ stackFun (first f)
+.stackFun-first : ∀ { f : A → C } → firstSF {B = B} (stackFun f) ≡ stackFun (first f)
 stackFun-first = refl
 
 secondSF : StackFun B D → StackFun (A × B) (A × D)
