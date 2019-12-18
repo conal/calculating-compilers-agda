@@ -213,7 +213,7 @@ instance
   so-Category : Category StackOps
   so-Category = record {
     idc = [] ;
-    _∘c_ = λ { g f → f ++ g } ;
+    _∘c_ = flip _++_ ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
