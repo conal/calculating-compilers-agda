@@ -150,7 +150,7 @@ instance
     -- swap = sf (λ {((a , b), z) → (b , a) , z})
      }
 
-firstSF : ∀ {A B C : Set} → StackFun A C → StackFun (A × B) (C × B)
+firstSF : StackFun A C → StackFun (A × B) (C × B)
 firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
 -- firstSF (sf f) = sf (first f)  -- bad
 
@@ -238,6 +238,7 @@ evalSO-comp (op ∷ f) g =
   ≡⟨⟩
     evalStackOps g ∘ evalStackOps (op ∷ f)
   ∎
+{-# REWRITE evalSO-comp #-}
 
 record StackProg (A : Set) (B : Set) : Set where
   constructor sp
@@ -258,21 +259,27 @@ progFun (sp ops) = sf (evalStackOps ops)
 .progFun-id : progFun (idc {A = A}) ≡ idc
 progFun-id = refl
 
-.progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B)
+-- .progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B)
+--               → progFun (g ∘c f) ≡ progFun g ∘c progFun f
+-- progFun-comp (sp g') (sp f') =
+--   begin
+--     progFun (sp g' ∘c sp f')
+--   ≡⟨⟩
+--     progFun (sp (g' ∘c f'))
+--   ≡⟨⟩
+--     sf (evalStackOps (g' ∘c f'))
+--   ≡⟨ cong sf (ext-i (evalSO-comp f' g')) ⟩
+--     sf (evalStackOps g' ∘ evalStackOps f')
+--   ≡⟨⟩
+--     sf (evalStackOps g' ∘ evalStackOps f')
+--   ≡⟨⟩
+--     sf (evalStackOps g') ∘c sf (evalStackOps f')
+--   ≡⟨⟩
+--     progFun (sp g') ∘c progFun (sp f')
+--   ∎
+
+-- With the evalSO-comp REWRITE pragma, the proof becomes trivial:
+
+.progFun-comp : ∀ {g : StackProg B C} {f : StackProg A B}
               → progFun (g ∘c f) ≡ progFun g ∘c progFun f
-progFun-comp (sp g') (sp f') =
-  begin
-    progFun (sp g' ∘c sp f')
-  ≡⟨⟩
-    progFun (sp (g' ∘c f'))
-  ≡⟨⟩
-    sf (evalStackOps (g' ∘c f'))
-  ≡⟨ cong sf (ext-i (evalSO-comp f' g')) ⟩
-    sf (evalStackOps g' ∘ evalStackOps f')
-  ≡⟨⟩
-    sf (evalStackOps g' ∘ evalStackOps f')
-  ≡⟨⟩
-    sf (evalStackOps g') ∘c sf (evalStackOps f')
-  ≡⟨⟩
-    progFun (sp g') ∘c progFun (sp f')
-  ∎
+progFun-comp = refl
