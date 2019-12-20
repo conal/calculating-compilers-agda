@@ -240,6 +240,15 @@ evalSO-comp (op ∷ f) g =
   ∎
 {-# REWRITE evalSO-comp #-}
 
+-- Given "evalSO-comp _ _ = {! !}", Agda will fill the hole with refl, and then
+-- complain:
+-- 
+--   A != B of type Set
+--   when checking that the expression refl has type
+--   evalStackOps (g ∘so f) ≡ (λ x → evalStackOps g (evalStackOps f x))
+--
+-- Bug?
+
 record StackProg (A : Set) (B : Set) : Set where
   constructor sp
   field unSP : ∀ {Z : Set} → StackOps (A × Z) (B × Z)
