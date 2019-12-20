@@ -96,17 +96,10 @@ record MonoidalP (_→k_ : Set → Set → Set) : Set where
     _×c_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
 open MonoidalP ⦃ … ⦄
 
--- _×→_ : (A → C) → (B → D) → ((A × B) → (C × D))
--- (f ×→ g) (a , b) = f a , g b
-
--- _×sf_ : StackFun A C → StackFun B D → StackFun (A × B) (C × D)
--- sf f ×sf sf g = sf {!!}
-
 instance
   →-MonoidalP : MonoidalP (λ (A B : Set) → A → B)
   →-MonoidalP = record {
     _×c_ = λ { f g (a , b) → f a , g b } }
-
 
 record AssociativeCat (_→k_ : Set → Set → Set) : Set where
   field
@@ -292,3 +285,29 @@ progFun-id = refl
 .progFun-comp : ∀ {g : StackProg B C} {f : StackProg A B}
               → progFun (g ∘c f) ≡ progFun g ∘c progFun f
 progFun-comp = refl
+
+
+
+-- firstSP : StackProg A C → StackProg (A × B) (C × B)
+-- firstSP (sp (op ∷ ops)) = sp ((pop ∷ []) ∘so ops ∘so (push ∷ []))
+-- 
+--  /Users/conal/Agda/Stack/Stack.agda:305,14-22
+--  Cannot split on argument of non-datatype
+--  {Z : Set} → StackOps (A × Z) (C × Z)
+--  when checking that the pattern op ∷ ops has type
+--  {Z : Set} → StackOps (A × Z) (C × Z)
+
+-- Simpler (I think): the underlying first on StackOps:
+
+-- firstSO : StackOps (A × Z) (C × Z) → StackOps ((A × B) × Z) ((C × B) × Z)
+-- firstSO ops = {!!}
+
+-- When I try to case split on ops, I get:
+--
+--   I'm not sure if there should be a case for the constructor [],
+--   because I get stuck when trying to solve the following unification
+--   problems (inferred index ≟ expected index):
+--     A₁ ≟ A₂ × Z₁
+--     A₁ ≟ C₁ × Z₁
+--   when checking that the expression ? has type
+--   StackOps ((A × B) × Z) ((C × B) × Z)
