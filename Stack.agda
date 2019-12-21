@@ -1,5 +1,7 @@
 {-# OPTIONS --type-in-type --rewriting #-}
 
+-- {-# OPTIONS --injective-type-constructors #-}
+
 open import Data.Product renaming (swap to pswap)
 open import Data.Unit
 open import Function
@@ -286,28 +288,9 @@ progFun-id = refl
               → progFun (g ∘c f) ≡ progFun g ∘c progFun f
 progFun-comp = refl
 
+firstSO : StackOps (A × (B × Z)) (C × (B × Z)) → StackOps ((A × B) × Z) ((C × B) × Z)
+firstSO ops = (pop ∷ []) ∘so ops ∘so (push ∷ [])
 
+firstSP : StackProg A C → StackProg (A × B) (C × B)
+firstSP (sp ops) = sp (firstSO ops)
 
--- firstSP : StackProg A C → StackProg (A × B) (C × B)
--- firstSP (sp (op ∷ ops)) = sp ((pop ∷ []) ∘so ops ∘so (push ∷ []))
--- 
---  /Users/conal/Agda/Stack/Stack.agda:305,14-22
---  Cannot split on argument of non-datatype
---  {Z : Set} → StackOps (A × Z) (C × Z)
---  when checking that the pattern op ∷ ops has type
---  {Z : Set} → StackOps (A × Z) (C × Z)
-
--- Simpler (I think): the underlying first on StackOps:
-
--- firstSO : StackOps (A × Z) (C × Z) → StackOps ((A × B) × Z) ((C × B) × Z)
--- firstSO ops = {!!}
-
--- When I try to case split on ops, I get:
---
---   I'm not sure if there should be a case for the constructor [],
---   because I get stuck when trying to solve the following unification
---   problems (inferred index ≟ expected index):
---     A₁ ≟ A₂ × Z₁
---     A₁ ≟ C₁ × Z₁
---   when checking that the expression ? has type
---   StackOps ((A × B) × Z) ((C × B) × Z)
