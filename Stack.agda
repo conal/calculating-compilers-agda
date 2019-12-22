@@ -153,7 +153,6 @@ instance
 
 firstSF : StackFun A C → StackFun (A × B) (C × B)
 firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
--- firstSF (sf f) = sf (first f)  -- bad
 
 .stackFun-first : ∀ { f : A → C }
                 → firstSF {B = B} (stackFun f) ≡ stackFun (first f)
@@ -226,13 +225,12 @@ evalPrim ‵add = _+c_
 evalPrim ‵sub = _-c_
 evalPrim ‵mul = _*c_
 
-
 data StackOp : Set → Set → Set where
   prim : Prim A B → StackOp (A × Z) (B × Z)
   push : StackOp ((A × B) × Z) (A × (B × Z))
   pop : StackOp (A × (B × Z)) ((A × B) × Z)
 
-evalStackOp : StackOp U V → U → V
+evalStackOp : StackOp U V → (U → V)
 evalStackOp (prim p) = first (evalPrim p)
 evalStackOp push = rassoc
 evalStackOp pop = lassoc
@@ -296,6 +294,8 @@ evalSO-∘ (op ∷ f) g =
   ∎
 {-# REWRITE evalSO-∘ #-}
 
+-- TODO: Can we automate the evalSO-∘ proof by using the REWRITE recursively?
+
 record StackProg (A : Set) (B : Set) : Set where
   constructor sp
   field unSP : ∀ {Z : Set} → StackOps (A × Z) (B × Z)
@@ -330,7 +330,7 @@ instance
     swap = primSP ‵swap }
 
 firstSP : StackProg A C → StackProg (A × B) (C × B)
-firstSP (sp ops) = sp ([ pop ] ∘so ops ∘so [ push ])
+firstSP (sp ops) = sp ([ pop ] ∘c ops ∘c [ push ])
 
 secondSP : StackProg B D → StackProg (A × B) (A × D)
 secondSP g = swap ∘c firstSP g ∘c swap
