@@ -14,9 +14,12 @@ open import Axiom.Extensionality.Propositional
        using (Extensionality; ExtensionalityImplicit)
 open import Agda.Builtin.Equality.Rewrite
 
-variable
- A B C D U V Z : Set
- _→k_ : Set → Set → Set
+open import IxList
+
+private
+  variable
+   A B C D U V Z : Set
+   _→k_ : Set → Set → Set
 
 postulate
   .ext : ∀ {α β} → Extensionality α β
@@ -235,39 +238,19 @@ evalStackOp (prim p) = first (evalPrim p)
 evalStackOp push = rassoc
 evalStackOp pop = lassoc
 
-infixr 5 _∷_
-data StackOps : Set → Set → Set where
-  [] : StackOps A A
-  _∷_ : StackOp A B → StackOps B C → StackOps A C
+StackOps : Set → Set → Set
+StackOps = IxList StackOp
 
 evalStackOps : StackOps U V → (U → V)
 evalStackOps [] = id
 evalStackOps (op ∷ rest) = evalStackOps rest ∘ evalStackOp op
 
-[_] : StackOp A B → StackOps A B
-[ op ] = op ∷ []
-
-infixr 5 _∘so_
-_∘so_ : StackOps B C → StackOps A B → StackOps A C
-ops′ ∘so [] = ops′
-ops′ ∘so (op ∷ ops) = op ∷ (ops′ ∘so ops)
-
-.∘so-id : ∀ (p : StackOps A B) → [] ∘so p ≡ p
-∘so-id [] = refl
-∘so-id (x ∷ p) = cong (x ∷_) (∘so-id p)
-{-# REWRITE ∘so-id #-}
-
-.∘so-assoc : ∀ (p : StackOps A B) (p′ : StackOps B C) (p″ : StackOps C D)
-          → p″ ∘so (p′ ∘so p) ≡ (p″ ∘so p′) ∘so p
-∘so-assoc [] _ _ = refl
-∘so-assoc (x ∷ p) p′ p″ = cong (x ∷_) (∘so-assoc p p′ p″)
-{-# REWRITE ∘so-assoc #-}
-
 instance
   so-Category : Category StackOps
   so-Category = record {
     idc = [] ;
-    _∘c_ = _∘so_ ;
+    -- _∘c_ = _∘so_ ;
+    _∘c_ = _∘il_ ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
