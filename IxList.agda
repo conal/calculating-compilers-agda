@@ -4,13 +4,16 @@
 
 module IxList where
 
+open import Function
+
 open import Relation.Binary.PropositionalEquality as PE
        hiding (Extensionality; [_])
+open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
 
 private
   variable
-   A B C D : Set
+   A B C D U V : Set
    _→k_ : Set → Set → Set
 
 infixr 5 _∷_
@@ -36,3 +39,32 @@ ops′ ∘il (op ∷ ops) = op ∷ (ops′ ∘il ops)
 ∘il-assoc [] _ _ = refl
 ∘il-assoc (x ∷ p) p′ p″ = cong (x ∷_) (∘il-assoc p p′ p″)
 {-# REWRITE ∘il-assoc #-}
+
+evalIL : (∀ {a b} → (a →k b) → (a → b)) → IxList _→k_ U V → (U → V)
+evalIL ev [] = id
+evalIL ev (op ∷ ops) = evalIL ev ops ∘ ev op
+
+.evalIL-id : ∀ (ev : ∀ {U V} → (U →k V) → (U → V)) → evalIL {U = U} ev [] ≡ id
+evalIL-id _ = refl
+
+.evalIL-∘ : ∀ (ev : ∀ {U V} → (U →k V) → (U → V)) → (f : IxList _→k_ A B) (g : IxList _→k_ B C) 
+          → evalIL ev (g ∘il f) ≡ evalIL ev g ∘ evalIL ev f
+evalIL-∘ ev [] g = refl
+evalIL-∘ ev (op ∷ f) g =
+  begin
+    evalIL ev (g ∘il (op ∷ f))
+  ≡⟨⟩
+    evalIL ev (op ∷ (g ∘il f))
+  ≡⟨⟩
+    evalIL ev (g ∘il f) ∘ ev op
+  ≡⟨ cong (_∘ ev op) (evalIL-∘ ev f g) ⟩
+    (evalIL ev g ∘ evalIL ev f) ∘ ev op
+  ≡⟨⟩
+    evalIL ev g ∘ (evalIL ev f ∘ ev op)
+  ≡⟨⟩
+    evalIL ev g ∘ evalIL ev (op ∷ f)
+  ∎
+{-# REWRITE evalIL-∘ #-}
+
+-- TODO: Can we automate the evalIL-∘ proof by using the REWRITE recursively?
+

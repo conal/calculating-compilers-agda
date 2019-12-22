@@ -251,32 +251,7 @@ StackOps : Set → Set → Set
 StackOps = IxList StackOp
 
 evalStackOps : StackOps U V → (U → V)
-evalStackOps [] = id
-evalStackOps (op ∷ rest) = evalStackOps rest ∘ evalStackOp op
-
-.evalSO-id : evalStackOps {A} idc ≡ idc
-evalSO-id = refl
-
-.evalSO-∘ : ∀ (f : StackOps A B) (g : StackOps B C)
-          → evalStackOps (g ∘c f) ≡ evalStackOps g ∘c evalStackOps f
-evalSO-∘ [] g = refl
-evalSO-∘ (op ∷ f) g =
-  begin
-    evalStackOps (g ∘c (op ∷ f))
-  ≡⟨⟩
-    evalStackOps (op ∷ (g ∘c f))
-  ≡⟨⟩
-    evalStackOps (g ∘c f) ∘ evalStackOp op
-  ≡⟨ cong (_∘ evalStackOp op) (evalSO-∘ f g) ⟩
-    (evalStackOps g ∘ evalStackOps f) ∘ evalStackOp op
-  ≡⟨⟩
-    evalStackOps g ∘ (evalStackOps f ∘ evalStackOp op)
-  ≡⟨⟩
-    evalStackOps g ∘ evalStackOps (op ∷ f)
-  ∎
-{-# REWRITE evalSO-∘ #-}
-
--- TODO: Can we automate the evalSO-∘ proof by using the REWRITE recursively?
+evalStackOps = evalIL evalStackOp
 
 record StackProg (A : Set) (B : Set) : Set where
   constructor sp
@@ -301,15 +276,14 @@ progFun-id = refl
            → progFun (g ∘c f) ≡ progFun g ∘c progFun f
 progFun-∘ = refl
 
--- The StackOpsO REWRITE pragmas make progFun-id and progFun-∘ proofs trivial.
+-- The evalIL REWRITE pragmas make progFun-id and progFun-∘ proofs trivial.
 
 primSP : Prim A B → StackProg A B
 primSP p = sp [ prim p ]
 
 instance
   StackProg-BraidedCat : BraidedCat StackProg
-  StackProg-BraidedCat = record {
-    swap = primSP ‵swap }
+  StackProg-BraidedCat = record { swap = primSP ‵swap }
 
 firstSP : StackProg A C → StackProg (A × B) (C × B)
 firstSP (sp ops) = sp ([ pop ] ∘c ops ∘c [ push ])
@@ -322,8 +296,7 @@ f ×sp g = secondSP g ∘c firstSP f
 
 instance
   StackProg-MonoidalP : MonoidalP StackProg
-  StackProg-MonoidalP = record {
-    _×c_ = _×sp_ }
+  StackProg-MonoidalP = record { _×c_ = _×sp_ }
 
 progFun-first : ∀ {f : StackProg A C}
               → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)
