@@ -6,7 +6,7 @@ open import Data.Product renaming (swap to pswap)
 open import Data.Unit
 open import Function
 
-open import Relation.Binary.PropositionalEquality as PE hiding (Extensionality)
+open import Relation.Binary.PropositionalEquality as PE hiding (Extensionality; [_])
 open PE.≡-Reasoning
 open import Axiom.Extensionality.Propositional
        using (Extensionality; ExtensionalityImplicit)
@@ -20,7 +20,7 @@ postulate
   .ext : ∀ {α β} → Extensionality α β
   .ext-i : ∀ {α β} → ExtensionalityImplicit α β
 
-First : Set -> Set -> Set
+First : Set → Set → Set
 First A B = ∀ {Z : Set} → A × Z → B × Z
 
 first : (A → B) → First A B
@@ -86,12 +86,12 @@ instance
 
 -- Homomorphisms
 
-.stackFun-id : stackFun id ≡ id-sf {A}
+.stackFun-id : stackFun {A} idc ≡ idc
 stackFun-id = refl
 
-.stackFun-comp : ∀ {g : B → C} {f : A → B}
-               → stackFun (g ∘ f) ≡ stackFun g ∘sf stackFun f
-stackFun-comp = refl
+.stackFun-∘ : ∀ {g : B → C} {f : A → B}
+            → stackFun (g ∘c f) ≡ stackFun g ∘c stackFun f
+stackFun-∘ = refl
 
 record MonoidalP (_→k_ : Set → Set → Set) : Set where
   field
@@ -132,17 +132,10 @@ instance
     swap = λ {(a , b) → b , a}
     }
 
--- swap→ : (A × B) → (B × A)
--- swap→ (a , b) = b , a
-
-swapSF : StackFun ((A × B) × C) (A × (B × C))
-swapSF = sf (λ {(((a , b) , c) , z) → (a , b , c) , z})
-
 instance
   StackFun-BraidedCat : BraidedCat StackFun
   StackFun-BraidedCat = record {
     swap = stackFun swap
-    -- swap = sf (λ {((a , b), z) → (b , a) , z})
      }
 
 firstSF : StackFun A C → StackFun (A × B) (C × B)
@@ -167,6 +160,9 @@ instance
   StackFun-MonoidalP = record {
     _×c_ = _×sf_ }
 
+stackFun-× : ∀ {f : A → C} {g : B → D} → stackFun (f ×c g) ≡ stackFun f ×c stackFun g
+stackFun-× = refl
+
 data StackOp : Set → Set → Set where
   pure : (A → B) → StackOp (A × Z) (B × Z)
   push : StackOp ((A × B) × Z) (A × (B × Z))
@@ -182,11 +178,12 @@ data StackOps : Set → Set → Set where
   [] : StackOps A A
   _∷_ : StackOp A B → StackOps B C → StackOps A C
 
--- TODO: generalize StackOps from StackOp to an arbitrary category.
-
 evalStackOps : StackOps U V → U → V
 evalStackOps [] = id
 evalStackOps (op ∷ rest) = evalStackOps rest ∘ evalStackOp op
+
+[_] : StackOp A B → StackOps A B
+[ op ] = op ∷ []
 
 infixr 5 _∘so_
 _∘so_ : StackOps B C → StackOps A B → StackOps A C
@@ -216,26 +213,26 @@ instance
 .evalSO-id : evalStackOps {A} idc ≡ idc
 evalSO-id = refl
 
-.evalSO-comp : ∀ (f : StackOps A B) (g : StackOps B C)
-             -> evalStackOps (g ∘c f) ≡ evalStackOps g ∘c evalStackOps f
-evalSO-comp [] g = refl
-evalSO-comp (op ∷ f) g =
+.evalSO-∘ : ∀ (f : StackOps A B) (g : StackOps B C)
+          → evalStackOps (g ∘c f) ≡ evalStackOps g ∘c evalStackOps f
+evalSO-∘ [] g = refl
+evalSO-∘ (op ∷ f) g =
   begin
     evalStackOps (g ∘c (op ∷ f))
   ≡⟨⟩
     evalStackOps (op ∷ (g ∘c f))
   ≡⟨⟩
     evalStackOps (g ∘c f) ∘ evalStackOp op
-  ≡⟨ cong (_∘ evalStackOp op) (evalSO-comp f g) ⟩
+  ≡⟨ cong (_∘ evalStackOp op) (evalSO-∘ f g) ⟩
     (evalStackOps g ∘ evalStackOps f) ∘ evalStackOp op
   ≡⟨⟩
     evalStackOps g ∘ (evalStackOps f ∘ evalStackOp op)
   ≡⟨⟩
     evalStackOps g ∘ evalStackOps (op ∷ f)
   ∎
-{-# REWRITE evalSO-comp #-}
+{-# REWRITE evalSO-∘ #-}
 
--- Given "evalSO-comp _ _ = {! !}", Agda will fill the hole with refl, and then
+-- Given "evalSO-∘ _ _ = {! !}", Agda will fill the hole with refl, and then
 -- complain:
 -- 
 --   A != B of type Set
@@ -263,16 +260,16 @@ progFun (sp ops) = sf (evalStackOps ops)
 .progFun-id : progFun (idc {A = A}) ≡ idc
 progFun-id = refl
 
--- .progFun-comp : ∀ (g : StackProg B C) (f : StackProg A B)
---               → progFun (g ∘c f) ≡ progFun g ∘c progFun f
--- progFun-comp (sp g') (sp f') =
+-- .progFun-∘ : ∀ (g : StackProg B C) (f : StackProg A B)
+--            → progFun (g ∘c f) ≡ progFun g ∘c progFun f
+-- progFun-∘ (sp g') (sp f') =
 --   begin
 --     progFun (sp g' ∘c sp f')
 --   ≡⟨⟩
 --     progFun (sp (g' ∘c f'))
 --   ≡⟨⟩
 --     sf (evalStackOps (g' ∘c f'))
---   ≡⟨ cong sf (ext-i (evalSO-comp f' g')) ⟩
+--   ≡⟨ cong sf (ext-i (evalSO-∘ f' g')) ⟩
 --     sf (evalStackOps g' ∘ evalStackOps f')
 --   ≡⟨⟩
 --     sf (evalStackOps g' ∘ evalStackOps f')
@@ -282,15 +279,40 @@ progFun-id = refl
 --     progFun (sp g') ∘c progFun (sp f')
 --   ∎
 
--- With the evalSO-comp REWRITE pragma, the proof becomes trivial:
+-- The evalSO-∘ REWRITE pragma makes the progFun-id proof trivial.
 
-.progFun-comp : ∀ {g : StackProg B C} {f : StackProg A B}
-              → progFun (g ∘c f) ≡ progFun g ∘c progFun f
-progFun-comp = refl
+.progFun-∘ : ∀ {g : StackProg B C} {f : StackProg A B}
+           → progFun (g ∘c f) ≡ progFun g ∘c progFun f
+progFun-∘ = refl
 
-firstSO : StackOps (A × (B × Z)) (C × (B × Z)) → StackOps ((A × B) × Z) ((C × B) × Z)
-firstSO ops = (pop ∷ []) ∘so ops ∘so (push ∷ [])
+pureSP : (A → B) → StackProg A B
+pureSP f = sp [ pure f ]
+
+instance
+  StackProg-BraidedCat : BraidedCat StackProg
+  StackProg-BraidedCat = record {
+    swap = pureSP swap
+    }
 
 firstSP : StackProg A C → StackProg (A × B) (C × B)
-firstSP (sp ops) = sp (firstSO ops)
+firstSP (sp ops) = sp ([ pop ] ∘so ops ∘so [ push ])
 
+secondSP : StackProg B D → StackProg (A × B) (A × D)
+secondSP g = swap ∘c firstSP g ∘c swap
+
+_×sp_ : StackProg A C → StackProg B D → StackProg (A × B) (C × D)
+f ×sp g = firstSP f ∘c secondSP g
+
+instance
+  StackProg-MonoidalP : MonoidalP StackProg
+  StackProg-MonoidalP = record {
+    _×c_ = _×sp_ }
+
+progFun-first : ∀ {f : StackProg A C} → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)
+progFun-first = refl
+
+progFun-second : ∀ {g : StackProg B D} → progFun (secondSP {A = A} g) ≡ secondSF (progFun g)
+progFun-second = refl
+
+-- progFun-× : ∀ {f : StackProg A C} {g : StackProg B D} → progFun (f ×c g) ≡ progFun f ×c progFun g
+-- progFun-× = refl
