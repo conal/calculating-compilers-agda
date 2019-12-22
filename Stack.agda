@@ -228,7 +228,7 @@ evalPrim ‵mul = _*c_
 data StackOp : Set → Set → Set where
   prim : Prim A B → StackOp (A × Z) (B × Z)
   push : StackOp ((A × B) × Z) (A × (B × Z))
-  pop : StackOp (A × (B × Z)) ((A × B) × Z)
+  pop  : StackOp (A × (B × Z)) ((A × B) × Z)
 
 evalStackOp : StackOp U V → (U → V)
 evalStackOp (prim p) = first (evalPrim p)
@@ -240,7 +240,7 @@ data StackOps : Set → Set → Set where
   [] : StackOps A A
   _∷_ : StackOp A B → StackOps B C → StackOps A C
 
-evalStackOps : StackOps U V → U → V
+evalStackOps : StackOps U V → (U → V)
 evalStackOps [] = id
 evalStackOps (op ∷ rest) = evalStackOps rest ∘ evalStackOp op
 
