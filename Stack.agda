@@ -5,6 +5,7 @@
 open import Data.Product renaming (swap to pswap)
 open import Data.Unit
 open import Function
+open import Data.Nat renaming (_+_ to _+ℕ_; _*_ to _*ℕ_)
 
 open import Relation.Binary.PropositionalEquality as PE
        hiding (Extensionality; [_])
@@ -104,6 +105,21 @@ instance
   →-MonoidalP = record {
     _×c_ = λ { f g (a , b) → f a , g b } }
 
+record Cartesian (_→k_ : Set → Set → Set) : Set where
+  field
+    exl : (A × B) →k A
+    exr : (A × B) →k B
+    dup : A →k (A × A)
+open Cartesian ⦃ … ⦄
+
+instance
+  →-Cartesian : Cartesian (λ (A B : Set) → A → B)
+  →-Cartesian = record {
+    exl = proj₁ ;
+    exr = proj₂ ;
+    dup = λ a → (a , a) }
+
+
 record AssociativeCat (_→k_ : Set → Set → Set) : Set where
   field
     rassoc : ((A × B) × C) →k (A × (B × C))
@@ -160,13 +176,64 @@ instance
 stackFun-× : ∀ {f : A → C} {g : B → D} → stackFun (f ×c g) ≡ stackFun f ×c stackFun g
 stackFun-× = refl
 
+instance
+  StackFun-Cartesian : Cartesian StackFun
+  StackFun-Cartesian = record {
+    exl = stackFun exl ;
+    exr = stackFun exr ;
+    dup = stackFun dup }
+
+
+record Num (A : Set) : Set where
+  field
+    _+_ _*_ _-_ : A → A → A
+    abs signum negate : A → A
+    fromℕ : ℕ → A
+open Num ⦃ … ⦄
+
+record NumCat (_→k_ : Set → Set → Set) (A : Set) : Set where
+  field
+    _+c_ _*c_ _-c_ : (A × A) →k A
+    negate-c : A →k A
+open NumCat ⦃ … ⦄
+
+instance
+  →-Num-NumCat : ⦃ num : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
+  →-Num-NumCat = record
+                   { _+c_ = uncurry _+_
+                   ; _*c_ = uncurry _*_
+                   ; _-c_ = uncurry _-_
+                   ; negate-c = negate
+                   }
+
+data Prim : Set → Set → Set where
+  ‵exl : Prim (A × B) A
+  ‵exr : Prim (A × B) B
+  ‵dup : Prim A (A × A)
+  ‵swap : Prim (A × B) (B × A)
+  -- …
+  ‵negate : ⦃ num : Num A ⦄ → Prim A A
+  ‵add ‵sub ‵mul : ⦃ num : Num A ⦄ → Prim (A × A) A
+  -- …
+
+evalPrim : Prim A B → A → B
+evalPrim ‵exl = exl
+evalPrim ‵exr = exr
+evalPrim ‵dup = dup
+evalPrim ‵swap = swap
+evalPrim ‵negate = negate-c
+evalPrim ‵add = _+c_
+evalPrim ‵sub = _-c_
+evalPrim ‵mul = _*c_
+
+
 data StackOp : Set → Set → Set where
-  pure : (A → B) → StackOp (A × Z) (B × Z)
+  prim : Prim A B → StackOp (A × Z) (B × Z)
   push : StackOp ((A × B) × Z) (A × (B × Z))
   pop : StackOp (A × (B × Z)) ((A × B) × Z)
 
 evalStackOp : StackOp U V → U → V
-evalStackOp (pure f) = first f
+evalStackOp (prim p) = first (evalPrim p)
 evalStackOp push = rassoc
 evalStackOp pop = lassoc
 
@@ -254,13 +321,13 @@ progFun-∘ = refl
 
 -- The StackOpsO REWRITE pragmas make progFun-id and progFun-∘ proofs trivial.
 
-pureSP : (A → B) → StackProg A B
-pureSP f = sp [ pure f ]
+primSP : Prim A B → StackProg A B
+primSP p = sp [ prim p ]
 
 instance
   StackProg-BraidedCat : BraidedCat StackProg
   StackProg-BraidedCat = record {
-    swap = pureSP swap }
+    swap = primSP ‵swap }
 
 firstSP : StackProg A C → StackProg (A × B) (C × B)
 firstSP (sp ops) = sp ([ pop ] ∘so ops ∘so [ push ])
