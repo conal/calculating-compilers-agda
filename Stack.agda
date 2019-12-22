@@ -6,7 +6,8 @@ open import Data.Product renaming (swap to pswap)
 open import Data.Unit
 open import Function
 
-open import Relation.Binary.PropositionalEquality as PE hiding (Extensionality; [_])
+open import Relation.Binary.PropositionalEquality as PE
+       hiding (Extensionality; [_])
 open PE.≡-Reasoning
 open import Axiom.Extensionality.Propositional
        using (Extensionality; ExtensionalityImplicit)
@@ -128,15 +129,11 @@ open BraidedCat ⦃ … ⦄
 
 instance
   →-BraidedCat : BraidedCat (λ (A B : Set) → A → B)
-  →-BraidedCat = record {
-    swap = λ {(a , b) → b , a}
-    }
+  →-BraidedCat = record { swap = λ {(a , b) → b , a} }
 
 instance
   StackFun-BraidedCat : BraidedCat StackFun
-  StackFun-BraidedCat = record {
-    swap = stackFun swap
-     }
+  StackFun-BraidedCat = record { swap = stackFun swap }
 
 firstSF : StackFun A C → StackFun (A × B) (C × B)
 firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
@@ -232,15 +229,6 @@ evalSO-∘ (op ∷ f) g =
   ∎
 {-# REWRITE evalSO-∘ #-}
 
--- Given "evalSO-∘ _ _ = {! !}", Agda will fill the hole with refl, and then
--- complain:
--- 
---   A != B of type Set
---   when checking that the expression refl has type
---   evalStackOps (g ∘so f) ≡ (λ x → evalStackOps g (evalStackOps f x))
---
--- Bug?
-
 record StackProg (A : Set) (B : Set) : Set where
   constructor sp
   field unSP : ∀ {Z : Set} → StackOps (A × Z) (B × Z)
@@ -260,30 +248,11 @@ progFun (sp ops) = sf (evalStackOps ops)
 .progFun-id : progFun (idc {A = A}) ≡ idc
 progFun-id = refl
 
--- .progFun-∘ : ∀ (g : StackProg B C) (f : StackProg A B)
---            → progFun (g ∘c f) ≡ progFun g ∘c progFun f
--- progFun-∘ (sp g') (sp f') =
---   begin
---     progFun (sp g' ∘c sp f')
---   ≡⟨⟩
---     progFun (sp (g' ∘c f'))
---   ≡⟨⟩
---     sf (evalStackOps (g' ∘c f'))
---   ≡⟨ cong sf (ext-i (evalSO-∘ f' g')) ⟩
---     sf (evalStackOps g' ∘ evalStackOps f')
---   ≡⟨⟩
---     sf (evalStackOps g' ∘ evalStackOps f')
---   ≡⟨⟩
---     sf (evalStackOps g') ∘c sf (evalStackOps f')
---   ≡⟨⟩
---     progFun (sp g') ∘c progFun (sp f')
---   ∎
-
--- The evalSO-∘ REWRITE pragma makes the progFun-id proof trivial.
-
 .progFun-∘ : ∀ {g : StackProg B C} {f : StackProg A B}
            → progFun (g ∘c f) ≡ progFun g ∘c progFun f
 progFun-∘ = refl
+
+-- The StackOpsO REWRITE pragmas make progFun-id and progFun-∘ proofs trivial.
 
 pureSP : (A → B) → StackProg A B
 pureSP f = sp [ pure f ]
@@ -291,8 +260,7 @@ pureSP f = sp [ pure f ]
 instance
   StackProg-BraidedCat : BraidedCat StackProg
   StackProg-BraidedCat = record {
-    swap = pureSP swap
-    }
+    swap = pureSP swap }
 
 firstSP : StackProg A C → StackProg (A × B) (C × B)
 firstSP (sp ops) = sp ([ pop ] ∘so ops ∘so [ push ])
@@ -301,18 +269,21 @@ secondSP : StackProg B D → StackProg (A × B) (A × D)
 secondSP g = swap ∘c firstSP g ∘c swap
 
 _×sp_ : StackProg A C → StackProg B D → StackProg (A × B) (C × D)
-f ×sp g = firstSP f ∘c secondSP g
+f ×sp g = secondSP g ∘c firstSP f
 
 instance
   StackProg-MonoidalP : MonoidalP StackProg
   StackProg-MonoidalP = record {
     _×c_ = _×sp_ }
 
-progFun-first : ∀ {f : StackProg A C} → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)
+progFun-first : ∀ {f : StackProg A C}
+              → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)
 progFun-first = refl
 
-progFun-second : ∀ {g : StackProg B D} → progFun (secondSP {A = A} g) ≡ secondSF (progFun g)
+progFun-second : ∀ {g : StackProg B D}
+               → progFun (secondSP {A = A} g) ≡ secondSF (progFun g)
 progFun-second = refl
 
--- progFun-× : ∀ {f : StackProg A C} {g : StackProg B D} → progFun (f ×c g) ≡ progFun f ×c progFun g
--- progFun-× = refl
+progFun-× : ∀ {f : StackProg A C} {g : StackProg B D}
+          → progFun (f ×c g) ≡ progFun f ×c progFun g
+progFun-× = refl
