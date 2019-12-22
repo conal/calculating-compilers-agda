@@ -238,22 +238,21 @@ evalStackOp (prim p) = first (evalPrim p)
 evalStackOp push = rassoc
 evalStackOp pop = lassoc
 
+instance
+  il-Category : Category (IxList _→k_)
+  il-Category = record {
+    idc = [] ;
+    _∘c_ = _∘il_ ;
+    id-l = refl ;
+    id-r = refl ;
+    assoc = refl }
+
 StackOps : Set → Set → Set
 StackOps = IxList StackOp
 
 evalStackOps : StackOps U V → (U → V)
 evalStackOps [] = id
 evalStackOps (op ∷ rest) = evalStackOps rest ∘ evalStackOp op
-
-instance
-  so-Category : Category StackOps
-  so-Category = record {
-    idc = [] ;
-    -- _∘c_ = _∘so_ ;
-    _∘c_ = _∘il_ ;
-    id-l = refl ;
-    id-r = refl ;
-    assoc = refl }
 
 .evalSO-id : evalStackOps {A} idc ≡ idc
 evalSO-id = refl
