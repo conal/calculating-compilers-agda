@@ -7,11 +7,8 @@ open import Data.Unit
 open import Function
 open import Data.Nat renaming (_+_ to _+ℕ_; _*_ to _*ℕ_)
 
-open import Relation.Binary.PropositionalEquality as PE
-       hiding (Extensionality; [_])
+open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open PE.≡-Reasoning
-open import Axiom.Extensionality.Propositional
-       using (Extensionality; ExtensionalityImplicit)
 open import Agda.Builtin.Equality.Rewrite
 
 open import IxList
@@ -20,10 +17,6 @@ private
   variable
    A B C D U V Z : Set
    _→k_ : Set → Set → Set
-
-postulate
-  .ext : ∀ {α β} → Extensionality α β
-  .ext-i : ∀ {α β} → ExtensionalityImplicit α β
 
 First : Set → Set → Set
 First A B = ∀ {Z : Set} → A × Z → B × Z
