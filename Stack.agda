@@ -2,6 +2,8 @@
 
 -- {-# OPTIONS --injective-type-constructors #-}
 
+module Stack where
+
 open import Data.Product renaming (swap to pswap)
 open import Data.Unit
 open import Function
@@ -11,6 +13,7 @@ open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
 
+open import Classes
 open import IxList
 
 private
