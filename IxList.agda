@@ -23,9 +23,6 @@ data IxList : (Set → Set → Set) → (Set → Set → Set) where
   [] : IxList _→k_ A A
   _∷_ : (A →k B) → IxList _→k_ B C → IxList _→k_ A C
 
-[_] : (A →k B) → IxList _→k_ A B
-[ op ] = op ∷ []
-
 infixr 5 _∘il_
 _∘il_ : IxList _→k_ B C → IxList _→k_ A B → IxList _→k_ A C
 ops′ ∘il [] = ops′
@@ -41,6 +38,15 @@ ops′ ∘il (op ∷ ops) = op ∷ (ops′ ∘il ops)
 ∘il-assoc [] _ _ = refl
 ∘il-assoc (x ∷ p) p′ p″ = cong (x ∷_) (∘il-assoc p p′ p″)
 {-# REWRITE ∘il-assoc #-}
+
+instance
+  IxList-Category : Category (IxList _→k_)
+  IxList-Category = record {
+    id = [] ;
+    _∘_ = _∘il_ ;
+    id-l = refl ;
+    id-r = refl ;
+    assoc = refl }
 
 evalIL : (∀ {a b} → (a →k b) → (a → b)) → IxList _→k_ U V → (U → V)
 evalIL ev [] = id
@@ -70,11 +76,5 @@ evalIL-∘ ev (op ∷ f) g =
 
 -- TODO: Can we automate the evalIL-∘ proof by using the REWRITE recursively?
 
-instance
-  IxList-Category : Category (IxList _→k_)
-  IxList-Category = record {
-    id = [] ;
-    _∘_ = _∘il_ ;
-    id-l = refl ;
-    id-r = refl ;
-    assoc = refl }
+[_] : (A →k B) → IxList _→k_ A B
+[ op ] = op ∷ []
