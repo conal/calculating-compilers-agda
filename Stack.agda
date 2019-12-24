@@ -94,16 +94,16 @@ stackFun-first = refl
 secondSF : StackFun B D → StackFun (A × B) (A × D)
 secondSF g = swap ∘ firstSF g ∘ swap
 
-_×sf_ : StackFun A C → StackFun B D → StackFun (A × B) (C × D)
-f ×sf g = secondSF g ∘ firstSF f
+_⊗sf_ : StackFun A C → StackFun B D → StackFun (A × B) (C × D)
+f ⊗sf g = secondSF g ∘ firstSF f
 
 -- -- Synthesized but not what we want
--- sf f ×sf sf g = sf (λ { ((a , b) , z) → f (a , proj₁ (g (b , z))) , z })
+-- sf f ⊗sf sf g = sf (λ { ((a , b) , z) → f (a , proj₁ (g (b , z))) , z })
 
 instance
   StackFun-MonoidalP : MonoidalP StackFun
   StackFun-MonoidalP = record {
-    _⊗_ = _×sf_ }
+    _⊗_ = _⊗sf_ }
 
 stackFun-× : ∀ {f : A → C} {g : B → D} → stackFun (f ⊗ g) ≡ stackFun f ⊗ stackFun g
 stackFun-× = refl
@@ -198,12 +198,12 @@ firstSP (sp ops) = sp ([ pop ] ∘ ops ∘ [ push ])
 secondSP : StackProg B D → StackProg (A × B) (A × D)
 secondSP g = swap ∘ firstSP g ∘ swap
 
-_×sp_ : StackProg A C → StackProg B D → StackProg (A × B) (C × D)
-f ×sp g = secondSP g ∘ firstSP f
+_⊗sp_ : StackProg A C → StackProg B D → StackProg (A × B) (C × D)
+f ⊗sp g = secondSP g ∘ firstSP f
 
 instance
   StackProg-MonoidalP : MonoidalP StackProg
-  StackProg-MonoidalP = record { _⊗_ = _×sp_ }
+  StackProg-MonoidalP = record { _⊗_ = _⊗sp_ }
 
 progFun-first : ∀ {f : StackProg A C}
               → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)
