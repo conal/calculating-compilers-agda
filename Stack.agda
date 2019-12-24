@@ -103,9 +103,9 @@ f ×sf g = secondSF g ∘ firstSF f
 instance
   StackFun-MonoidalP : MonoidalP StackFun
   StackFun-MonoidalP = record {
-    _×c_ = _×sf_ }
+    _⊗_ = _×sf_ }
 
-stackFun-× : ∀ {f : A → C} {g : B → D} → stackFun (f ×c g) ≡ stackFun f ×c stackFun g
+stackFun-× : ∀ {f : A → C} {g : B → D} → stackFun (f ⊗ g) ≡ stackFun f ⊗ stackFun g
 stackFun-× = refl
 
 instance
@@ -203,7 +203,7 @@ f ×sp g = secondSP g ∘ firstSP f
 
 instance
   StackProg-MonoidalP : MonoidalP StackProg
-  StackProg-MonoidalP = record { _×c_ = _×sp_ }
+  StackProg-MonoidalP = record { _⊗_ = _×sp_ }
 
 progFun-first : ∀ {f : StackProg A C}
               → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)
@@ -214,5 +214,5 @@ progFun-second : ∀ {g : StackProg B D}
 progFun-second = refl
 
 progFun-× : ∀ {f : StackProg A C} {g : StackProg B D}
-          → progFun (f ×c g) ≡ progFun f ×c progFun g
+          → progFun (f ⊗ g) ≡ progFun f ⊗ progFun g
 progFun-× = refl

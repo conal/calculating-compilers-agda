@@ -75,13 +75,13 @@ instance
 
 record MonoidalP (_→k_ : Set → Set → Set) : Set where
   field
-    _×c_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
+    _⊗_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
 open MonoidalP ⦃ … ⦄ public
 
 instance
   →-MonoidalP : MonoidalP (λ (A B : Set) → A → B)
   →-MonoidalP = record {
-    _×c_ = λ { f g (a , b) → f a , g b } }
+    _⊗_ = λ { f g (a , b) → f a , g b } }
 
 record Num (A : Set) : Set where
   field
