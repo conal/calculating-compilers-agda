@@ -11,6 +11,8 @@ open import Relation.Binary.PropositionalEquality as PE
 open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
 
+open import Classes
+
 private
   variable
    A B C D U V : Set
@@ -68,3 +70,11 @@ evalIL-∘ ev (op ∷ f) g =
 
 -- TODO: Can we automate the evalIL-∘ proof by using the REWRITE recursively?
 
+instance
+  IxList-Category : Category (IxList _→k_)
+  IxList-Category = record {
+    idc = [] ;
+    _∘c_ = _∘il_ ;
+    id-l = refl ;
+    id-r = refl ;
+    assoc = refl }

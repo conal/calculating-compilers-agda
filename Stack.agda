@@ -13,7 +13,7 @@ open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
 
-open import Classes ⦃ … ⦄
+open import Classes -- ⦃ … ⦄
 open import IxList
 
 private
@@ -57,8 +57,8 @@ _∘sf_ : StackFun B C → StackFun A B → StackFun A C
 sf g ∘sf sf f = sf (g ∘ f)
 
 instance
-  _ : Category StackFun
-  _ = record {
+  StackFun-Category : Category StackFun
+  StackFun-Category = record {
     idc = id-sf ;
     _∘c_ = _∘sf_ ;
     id-l = refl ;
@@ -74,61 +74,15 @@ stackFun-id = refl
             → stackFun (g ∘c f) ≡ stackFun g ∘c stackFun f
 stackFun-∘ = refl
 
-record MonoidalP (_→k_ : Set → Set → Set) : Set where
-  field
-    _×c_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
-open MonoidalP ⦃ … ⦄
-
 instance
-  _ : MonoidalP (λ (A B : Set) → A → B)
-  _ = record {
-    _×c_ = λ { f g (a , b) → f a , g b } }
-
-record Cartesian (_→k_ : Set → Set → Set) : Set where
-  field
-    exl : (A × B) →k A
-    exr : (A × B) →k B
-    dup : A →k (A × A)
-open Cartesian ⦃ … ⦄
-
-instance
-  _ : Cartesian (λ (A B : Set) → A → B)
-  _ = record {
-    exl = proj₁ ;
-    exr = proj₂ ;
-    dup = λ a → (a , a) }
-
-
-record AssociativeCat (_→k_ : Set → Set → Set) : Set where
-  field
-    rassoc : ((A × B) × C) →k (A × (B × C))
-    lassoc : (A × (B × C)) →k ((A × B) × C)
-open AssociativeCat ⦃ … ⦄
-
-instance
-  _ : AssociativeCat (λ (A B : Set) → A → B)
-  _ = record {
-    rassoc = λ { ((a , b) , c) → a , b , c } ;
-    lassoc = λ { (a , b , c) → (a , b) , c } }
-
-instance
-  _ : AssociativeCat StackFun
-  _ = record {
+  StackFun-AssociativeCat : AssociativeCat StackFun
+  StackFun-AssociativeCat = record {
     rassoc = stackFun rassoc ;
     lassoc = stackFun lassoc }
 
-record BraidedCat (_→k_ : Set → Set → Set) : Set where
-  field
-    swap : (A × B) →k (B × A)
-open BraidedCat ⦃ … ⦄
-
 instance
-  _ : BraidedCat (λ (A B : Set) → A → B)
-  _ = record { swap = λ {(a , b) → b , a} }
-
-instance
-  _ : BraidedCat StackFun
-  _ = record { swap = stackFun swap }
+  StackFun-BraidedCat : BraidedCat StackFun
+  StackFun-BraidedCat = record { swap = stackFun swap }
 
 firstSF : StackFun A C → StackFun (A × B) (C × B)
 firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
@@ -147,37 +101,23 @@ f ×sf g = secondSF g ∘c firstSF f
 -- sf f ×sf sf g = sf (λ { ((a , b) , z) → f (a , proj₁ (g (b , z))) , z })
 
 instance
-  _ : MonoidalP StackFun
-  _ = record {
+  StackFun-MonoidalP : MonoidalP StackFun
+  StackFun-MonoidalP = record {
     _×c_ = _×sf_ }
 
 stackFun-× : ∀ {f : A → C} {g : B → D} → stackFun (f ×c g) ≡ stackFun f ×c stackFun g
 stackFun-× = refl
 
 instance
-  _ : Cartesian StackFun
-  _ = record {
+  StackFun-Cartesian : Cartesian StackFun
+  StackFun-Cartesian = record {
     exl = stackFun exl ;
     exr = stackFun exr ;
     dup = stackFun dup }
 
-
-record Num (A : Set) : Set where
-  field
-    _+_ _*_ _-_ : A → A → A
-    abs signum negate : A → A
-    fromℕ : ℕ → A
-open Num ⦃ … ⦄
-
-record NumCat (_→k_ : Set → Set → Set) (A : Set) : Set where
-  field
-    _+c_ _*c_ _-c_ : (A × A) →k A
-    negate-c : A →k A
-open NumCat ⦃ … ⦄
-
 instance
-  _ : ⦃ _ : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
-  _ = record
+  →-Num_ : ⦃ _ : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
+  →-Num_ = record
                    { _+c_ = uncurry _+_
                    ; _*c_ = uncurry _*_
                    ; _-c_ = uncurry _-_
@@ -214,15 +154,6 @@ evalStackOp (prim p) = first (evalPrim p)
 evalStackOp push = rassoc
 evalStackOp pop = lassoc
 
-instance
-  _ : Category (IxList _→k_)
-  _ = record {
-    idc = [] ;
-    _∘c_ = _∘il_ ;
-    id-l = refl ;
-    id-r = refl ;
-    assoc = refl }
-
 StackOps : Set → Set → Set
 StackOps = IxList StackOp
 
@@ -234,8 +165,8 @@ record StackProg (A : Set) (B : Set) : Set where
   field unSP : ∀ {Z : Set} → StackOps (A × Z) (B × Z)
 
 instance
-  _ : Category StackProg
-  _ = record {
+  StackProg-Category : Category StackProg
+  StackProg-Category = record {
     idc = sp idc ;
     _∘c_ = λ { (sp g) (sp f) → sp (g ∘c f) } ;
     id-l = refl ;
@@ -258,8 +189,8 @@ primSP : Prim A B → StackProg A B
 primSP p = sp [ prim p ]
 
 instance
-  _ : BraidedCat StackProg
-  _ = record { swap = primSP ‵swap }
+  StackProg-BraidedCat : BraidedCat StackProg
+  StackProg-BraidedCat = record { swap = primSP ‵swap }
 
 firstSP : StackProg A C → StackProg (A × B) (C × B)
 firstSP (sp ops) = sp ([ pop ] ∘c ops ∘c [ push ])
@@ -271,8 +202,8 @@ _×sp_ : StackProg A C → StackProg B D → StackProg (A × B) (C × D)
 f ×sp g = secondSP g ∘c firstSP f
 
 instance
-  _ : MonoidalP StackProg
-  _ = record { _×c_ = _×sp_ }
+  StackProg-MonoidalP : MonoidalP StackProg
+  StackProg-MonoidalP = record { _×c_ = _×sp_ }
 
 progFun-first : ∀ {f : StackProg A C}
               → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)

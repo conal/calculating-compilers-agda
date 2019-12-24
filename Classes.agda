@@ -30,10 +30,68 @@ record Category (_→k_ : Set → Set → Set) : Set where
 open Category ⦃ … ⦄ public
 
 instance
-  _ : Category (λ (A B : Set) → A → B)
-  _ = record {
+  →-Category : Category (λ (A B : Set) → A → B)
+  →-Category = record {
     idc = id ;
     _∘c_ = _∘′_ ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
+
+record Cartesian (_→k_ : Set → Set → Set) : Set where
+  field
+    exl : (A × B) →k A
+    exr : (A × B) →k B
+    dup : A →k (A × A)
+open Cartesian ⦃ … ⦄ public
+
+instance
+  →-Cartesian : Cartesian (λ (A B : Set) → A → B)
+  →-Cartesian = record {
+    exl = proj₁ ;
+    exr = proj₂ ;
+    dup = λ a → (a , a) }
+
+record AssociativeCat (_→k_ : Set → Set → Set) : Set where
+  field
+    rassoc : ((A × B) × C) →k (A × (B × C))
+    lassoc : (A × (B × C)) →k ((A × B) × C)
+open AssociativeCat ⦃ … ⦄ public
+
+instance
+  →-AssociativeCat : AssociativeCat (λ (A B : Set) → A → B)
+  →-AssociativeCat = record {
+    rassoc = λ { ((a , b) , c) → a , b , c } ;
+    lassoc = λ { (a , b , c) → (a , b) , c } }
+
+record BraidedCat (_→k_ : Set → Set → Set) : Set where
+  field
+    swap : (A × B) →k (B × A)
+open BraidedCat ⦃ … ⦄ public
+
+instance
+  →-BraidedCat : BraidedCat (λ (A B : Set) → A → B)
+  →-BraidedCat = record { swap = λ {(a , b) → b , a} }
+
+record MonoidalP (_→k_ : Set → Set → Set) : Set where
+  field
+    _×c_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
+open MonoidalP ⦃ … ⦄ public
+
+instance
+  →-MonoidalP : MonoidalP (λ (A B : Set) → A → B)
+  →-MonoidalP = record {
+    _×c_ = λ { f g (a , b) → f a , g b } }
+
+record Num (A : Set) : Set where
+  field
+    _+_ _*_ _-_ : A → A → A
+    abs signum negate : A → A
+    fromℕ : ℕ → A
+open Num ⦃ … ⦄ public
+
+record NumCat (_→k_ : Set → Set → Set) (A : Set) : Set where
+  field
+    _+c_ _*c_ _-c_ : (A × A) →k A
+    negate-c : A →k A
+open NumCat ⦃ … ⦄ public
