@@ -50,17 +50,11 @@ evalStackFun_stackFun₁ = refl
 evalStackFun_stackFun₂ : evalStackFun {A}{B} ∘ stackFun ≡ id
 evalStackFun_stackFun₂ = refl
 
-id-sf : StackFun A A
-id-sf = sf id
-
-_∘sf_ : StackFun B C → StackFun A B → StackFun A C
-sf g ∘sf sf f = sf (g ∘ f)
-
 instance
   StackFun-Category : Category StackFun
   StackFun-Category = record {
-    id = id-sf ;
-    _∘_ = _∘sf_ ;
+    id = sf id ;
+    _∘_ = λ { (sf g) (sf f) → sf (g ∘ f) } ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
@@ -94,16 +88,10 @@ stackFun-first = refl
 secondSF : StackFun B D → StackFun (A × B) (A × D)
 secondSF g = swap ∘ firstSF g ∘ swap
 
-_⊗sf_ : StackFun A C → StackFun B D → StackFun (A × B) (C × D)
-f ⊗sf g = secondSF g ∘ firstSF f
-
--- -- Synthesized but not what we want
--- sf f ⊗sf sf g = sf (λ { ((a , b) , z) → f (a , proj₁ (g (b , z))) , z })
-
 instance
   StackFun-MonoidalP : MonoidalP StackFun
   StackFun-MonoidalP = record {
-    _⊗_ = _⊗sf_ }
+    _⊗_ = λ f g → secondSF g ∘ firstSF f }
 
 stackFun-× : ∀ {f : A → C} {g : B → D} → stackFun (f ⊗ g) ≡ stackFun f ⊗ stackFun g
 stackFun-× = refl
@@ -117,12 +105,12 @@ instance
 
 instance
   →-Num_ : ⦃ _ : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
-  →-Num_ = record
-                   { _+c_ = uncurry _+_
-                   ; _*c_ = uncurry _*_
-                   ; _-c_ = uncurry _-_
-                   ; negate-c = negate
-                   }
+  →-Num_ = record {
+      _+c_ = uncurry _+_
+    ; _*c_ = uncurry _*_
+    ; _-c_ = uncurry _-_
+    ; negate-c = negate
+    }
 
 data Prim : Set → Set → Set where
   ‵exl : Prim (A × B) A
@@ -198,12 +186,11 @@ firstSP (sp ops) = sp ([ pop ] ∘ ops ∘ [ push ])
 secondSP : StackProg B D → StackProg (A × B) (A × D)
 secondSP g = swap ∘ firstSP g ∘ swap
 
-_⊗sp_ : StackProg A C → StackProg B D → StackProg (A × B) (C × D)
-f ⊗sp g = secondSP g ∘ firstSP f
-
 instance
   StackProg-MonoidalP : MonoidalP StackProg
-  StackProg-MonoidalP = record { _⊗_ = _⊗sp_ }
+  -- StackProg-MonoidalP = record { _⊗_ = _⊗sp_ }
+  StackProg-MonoidalP = record {
+   _⊗_ = λ f g → secondSP g ∘ firstSP f }
 
 progFun-first : ∀ {f : StackProg A C}
               → progFun (firstSP {B = B} f) ≡ firstSF (progFun f)
