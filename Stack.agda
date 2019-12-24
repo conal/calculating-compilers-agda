@@ -13,7 +13,7 @@ open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
 
-open import Classes -- ⦃ … ⦄
+open import Classes
 open import IxList
 
 private
