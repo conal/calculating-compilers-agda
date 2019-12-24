@@ -95,3 +95,12 @@ record NumCat (_→k_ : Set → Set → Set) (A : Set) : Set where
     _+c_ _*c_ _-c_ : (A × A) →k A
     negate-c : A →k A
 open NumCat ⦃ … ⦄ public
+
+instance
+  →-Num : ⦃ _ : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
+  →-Num = record {
+      _+c_ = uncurry _+_
+    ; _*c_ = uncurry _*_
+    ; _-c_ = uncurry _-_
+    ; negate-c = negate
+    }

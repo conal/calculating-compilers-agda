@@ -103,15 +103,6 @@ instance
     exr = stackFun exr ;
     dup = stackFun dup }
 
-instance
-  →-Num_ : ⦃ _ : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
-  →-Num_ = record {
-      _+c_ = uncurry _+_
-    ; _*c_ = uncurry _*_
-    ; _-c_ = uncurry _-_
-    ; negate-c = negate
-    }
-
 data Prim : Set → Set → Set where
   ‵exl : Prim (A × B) A
   ‵exr : Prim (A × B) B
