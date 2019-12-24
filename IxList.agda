@@ -4,12 +4,14 @@
 
 module IxList where
 
-open import Function
+open import Function hiding (id; _∘_)
 
 open import Relation.Binary.PropositionalEquality as PE
        hiding (Extensionality; [_])
 open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
+
+open import Classes
 
 private
   variable
@@ -68,3 +70,11 @@ evalIL-∘ ev (op ∷ f) g =
 
 -- TODO: Can we automate the evalIL-∘ proof by using the REWRITE recursively?
 
+instance
+  IxList-Category : Category (IxList _→k_)
+  IxList-Category = record {
+    id = [] ;
+    _∘_ = _∘il_ ;
+    id-l = refl ;
+    id-r = refl ;
+    assoc = refl }
