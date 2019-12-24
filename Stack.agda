@@ -6,7 +6,7 @@ module Stack where
 
 open import Data.Product renaming (swap to pswap)
 open import Data.Unit
-open import Function
+open import Function hiding (id; _∘_)
 open import Data.Nat renaming (_+_ to _+ℕ_; _*_ to _*ℕ_)
 
 open import Relation.Binary.PropositionalEquality as PE hiding ([_])
@@ -59,19 +59,19 @@ sf g ∘sf sf f = sf (g ∘ f)
 instance
   StackFun-Category : Category StackFun
   StackFun-Category = record {
-    idc = id-sf ;
-    _∘c_ = _∘sf_ ;
+    id = id-sf ;
+    _∘_ = _∘sf_ ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
 
 -- Homomorphisms
 
-.stackFun-id : stackFun {A} idc ≡ idc
+.stackFun-id : stackFun {A} id ≡ id
 stackFun-id = refl
 
 .stackFun-∘ : ∀ {g : B → C} {f : A → B}
-            → stackFun (g ∘c f) ≡ stackFun g ∘c stackFun f
+            → stackFun (g ∘ f) ≡ stackFun g ∘ stackFun f
 stackFun-∘ = refl
 
 instance
@@ -92,10 +92,10 @@ firstSF (sf f) = sf (lassoc ∘ f ∘ rassoc)
 stackFun-first = refl
 
 secondSF : StackFun B D → StackFun (A × B) (A × D)
-secondSF g = swap ∘c firstSF g ∘c swap
+secondSF g = swap ∘ firstSF g ∘ swap
 
 _×sf_ : StackFun A C → StackFun B D → StackFun (A × B) (C × D)
-f ×sf g = secondSF g ∘c firstSF f
+f ×sf g = secondSF g ∘ firstSF f
 
 -- -- Synthesized but not what we want
 -- sf f ×sf sf g = sf (λ { ((a , b) , z) → f (a , proj₁ (g (b , z))) , z })
@@ -167,8 +167,8 @@ record StackProg (A : Set) (B : Set) : Set where
 instance
   StackProg-Category : Category StackProg
   StackProg-Category = record {
-    idc = sp idc ;
-    _∘c_ = λ { (sp g) (sp f) → sp (g ∘c f) } ;
+    id = sp id ;
+    _∘_ = λ { (sp g) (sp f) → sp (g ∘ f) } ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
@@ -176,11 +176,11 @@ instance
 progFun : StackProg A B → StackFun A B
 progFun (sp ops) = sf (evalStackOps ops)
 
-.progFun-id : progFun (idc {A = A}) ≡ idc
+.progFun-id : progFun (id {A = A}) ≡ id
 progFun-id = refl
 
 .progFun-∘ : ∀ {g : StackProg B C} {f : StackProg A B}
-           → progFun (g ∘c f) ≡ progFun g ∘c progFun f
+           → progFun (g ∘ f) ≡ progFun g ∘ progFun f
 progFun-∘ = refl
 
 -- The evalIL REWRITE pragmas make progFun-id and progFun-∘ proofs trivial.
@@ -193,13 +193,13 @@ instance
   StackProg-BraidedCat = record { swap = primSP ‵swap }
 
 firstSP : StackProg A C → StackProg (A × B) (C × B)
-firstSP (sp ops) = sp ([ pop ] ∘c ops ∘c [ push ])
+firstSP (sp ops) = sp ([ pop ] ∘ ops ∘ [ push ])
 
 secondSP : StackProg B D → StackProg (A × B) (A × D)
-secondSP g = swap ∘c firstSP g ∘c swap
+secondSP g = swap ∘ firstSP g ∘ swap
 
 _×sp_ : StackProg A C → StackProg B D → StackProg (A × B) (C × D)
-f ×sp g = secondSP g ∘c firstSP f
+f ×sp g = secondSP g ∘ firstSP f
 
 instance
   StackProg-MonoidalP : MonoidalP StackProg

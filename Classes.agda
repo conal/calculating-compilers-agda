@@ -6,7 +6,7 @@ module Classes where
 
 open import Data.Product renaming (swap to pswap)
 open import Data.Unit
-open import Function
+open import Function renaming (_∘_ to _∘→_; id to id→)
 open import Data.Nat renaming (_+_ to _+ℕ_; _*_ to _*ℕ_)
 
 open import Relation.Binary.PropositionalEquality as PE hiding ([_])
@@ -19,21 +19,21 @@ private
    _→k_ : Set → Set → Set
 
 record Category (_→k_ : Set → Set → Set) : Set where
-  infixr 5 _∘c_
+  infixr 5 _∘_
   field
-    idc   : A →k A
-    _∘c_  : (B →k C) → (A →k B) → (A →k C)
-    .id-l  : ∀ {f : A →k B} → idc ∘c f ≡ f
-    .id-r  : ∀ {f : A →k B} → f ∘c idc ≡ f
+    id   : A →k A
+    _∘_  : (B →k C) → (A →k B) → (A →k C)
+    .id-l  : ∀ {f : A →k B} → id ∘ f ≡ f
+    .id-r  : ∀ {f : A →k B} → f ∘ id ≡ f
     .assoc : ∀ {h : C →k D} {g : B →k C} {f : A →k B}
-           → (h ∘c g) ∘c f ≡ h ∘c (g ∘c f)
+           → (h ∘ g) ∘ f ≡ h ∘ (g ∘ f)
 open Category ⦃ … ⦄ public
 
 instance
   →-Category : Category (λ (A B : Set) → A → B)
   →-Category = record {
-    idc = id ;
-    _∘c_ = _∘′_ ;
+    id = id→ ;
+    _∘_ = _∘′_ ;
     id-l = refl ;
     id-r = refl ;
     assoc = refl }
