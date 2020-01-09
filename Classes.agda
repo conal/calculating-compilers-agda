@@ -1,7 +1,5 @@
 {-# OPTIONS --type-in-type --rewriting #-}
 
--- {-# OPTIONS --injective-type-constructors #-}
-
 module Classes where
 
 open import Data.Product renaming (swap to pswap)

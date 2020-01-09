@@ -1,13 +1,12 @@
 {-# OPTIONS --type-in-type --rewriting #-}
 
--- {-# OPTIONS --injective-type-constructors #-}
-
 module Stack where
 
+open import Data.Sum renaming (swap to sswap)
 open import Data.Product renaming (swap to pswap)
 open import Data.Unit
-open import Function hiding (id; _∘_)
 open import Data.Nat renaming (_+_ to _+ℕ_; _*_ to _*ℕ_)
+open import Data.Bool
 
 open import Relation.Binary.PropositionalEquality as PE hiding ([_])
 open PE.≡-Reasoning
@@ -194,3 +193,49 @@ progFun-second = refl
 progFun-× : ∀ {f : StackProg A C} {g : StackProg B D}
           → progFun (f ⊗ g) ≡ progFun f ⊗ progFun g
 progFun-× = refl
+
+
+-- Closure experiments 
+
+{-
+type family V a
+
+instance V Bool = Bool
+instance V Int = Int
+...
+
+instance V (a :* b) = V a :* V b
+instance V (a :+ b) = V a :+ V b
+
+instance V (a -> b) = Closure a b
+
+data Closure a b = forall e. Closure e (StackFun (e :* a) b)
+-}
+
+record HasVal (A : Set) : Set where
+  field
+    Val : Set
+open HasVal ⦃ … ⦄ public
+
+instance
+  Bool-HasVal : HasVal Bool
+  Bool-HasVal = record { Val = Bool }
+
+instance
+  ℕ-HasVal : HasVal ℕ
+  ℕ-HasVal = record { Val = ℕ }
+
+instance
+  ×-HasVal : ⦃ _ : HasVal A ⦄ → ⦃ _ : HasVal B ⦄ → HasVal (A × B)
+  ×-HasVal ⦃ va ⦄ ⦃ vb ⦄ = record { Val = HasVal.Val va × HasVal.Val vb }
+  -- Why do I need "HasVal."?
+
+instance
+  ⊎-HasVal : ⦃ _ : HasVal A ⦄ → ⦃ _ : HasVal B ⦄ → HasVal (A ⊎ B)
+  ⊎-HasVal ⦃ va ⦄ ⦃ vb ⦄ = record { Val = HasVal.Val va ⊎ HasVal.Val vb }
+
+-- instance
+--   →-HasVal : ⦃ _ : HasVal A ⦄ → ⦃ _ : HasVal B ⦄ → HasVal (A → B)
+--   →-HasVal ⦃ va ⦄ ⦃ vb ⦄ = record { Val = Closure A B }
+
+-- data Closure a b = forall e. Closure e (StackFun (e :* a) b)

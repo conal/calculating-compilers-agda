@@ -4,8 +4,6 @@
 
 module IxList where
 
-open import Function hiding (id; _∘_)
-
 open import Relation.Binary.PropositionalEquality as PE
        hiding (Extensionality; [_])
 open PE.≡-Reasoning
