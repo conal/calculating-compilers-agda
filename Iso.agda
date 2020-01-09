@@ -25,6 +25,16 @@ record _≃_ (A B : Set) : Set where
     .to∘from : ∀ {y : B} → to (from y) ≡ y
 open _≃_
 
+
+-- {-# REWRITE from∘to #-}
+-- {-# REWRITE to∘from #-}
+
+-- "from∘to is not a legal rewrite rule, since the left-hand side is neither a
+-- defined symbol nor a constructor when checking the pragma REWRITE from∘to"
+
+-- If we could make from∘to and to∘from into rewrite rules, I think the explicit
+-- equational proofs below could all be replaced by refl. Is there a way?
+
 _⁻¹ : (A ≃ B) → (B ≃ A)
 A≃B ⁻¹ = record { to = from A≃B; from = to A≃B; from∘to = to∘from A≃B; to∘from = from∘to A≃B }
 
@@ -63,9 +73,6 @@ B≃C ∘≃ A≃B =
          }
 
 -- --irrelevant-projections needed for from∘to and to∘from. Alternatives?
-
--- If we could make from∘to and to∘from into rewrite rules, I think the proofs
--- above could be replaced by refl.
 
 instance
   ≃-Category : Category _≃_
