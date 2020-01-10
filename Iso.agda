@@ -23,8 +23,7 @@ record _≃_ (A B : Set) : Set where
     from : B → A
     .from∘to : ∀ {x : A} → from (to x) ≡ x
     .to∘from : ∀ {y : B} → to (from y) ≡ y
-open _≃_
-
+open _≃_ public
 
 -- {-# REWRITE from∘to #-}
 -- {-# REWRITE to∘from #-}
@@ -34,6 +33,28 @@ open _≃_
 
 -- If we could make from∘to and to∘from into rewrite rules, I think the explicit
 -- equational proofs below could all be replaced by refl. Is there a way?
+
+-- {-# REWRITE _≃_.from∘to #-}
+-- {-# REWRITE _≃_.to∘from #-}
+
+{-
+
+-- Experiment:
+
+to′ : (A ≃ B) → A → B
+to′ = to
+
+from′ : (A ≃ B) → B → A
+from′ = from
+
+.from-to′ : (f : A ≃ B) {x : A} → from′ f (to′ f x) ≡ x
+from-to′ f = from∘to f
+
+{-# REWRITE from-to′ #-}
+
+-- Same failure
+
+-}
 
 _⁻¹ : (A ≃ B) → (B ≃ A)
 A≃B ⁻¹ = record { to = from A≃B; from = to A≃B; from∘to = to∘from A≃B; to∘from = from∘to A≃B }
