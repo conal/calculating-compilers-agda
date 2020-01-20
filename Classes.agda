@@ -3,6 +3,7 @@
 module Classes where
 
 open import Data.Product renaming (swap to pswap)
+open import Data.Sum renaming (swap to sswap)
 open import Data.Unit
 open import Function renaming (_∘_ to _∘→_; id to id→)
 open import Data.Nat renaming (_+_ to _+ℕ_; _*_ to _*ℕ_)
@@ -36,12 +37,27 @@ instance
     id-r = refl ;
     assoc = refl }
 
-record Cartesian (_→k_ : Set → Set → Set) : Set where
+record MonoidalP (_→k_ : Set → Set → Set) : Set where
   field
+    ⦃ cat ⦄ : Category _→k_
+    _⊗_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
+open MonoidalP ⦃ … ⦄ public
+
+instance
+  →-MonoidalP : MonoidalP (λ (A B : Set) → A → B)
+  →-MonoidalP = record {
+    _⊗_ = λ { f g (a , b) → (f a , g b) } }
+
+record Cartesian _→k_ : Set where
+  field
+    ⦃ _→k_MonoidalP ⦄ : MonoidalP _→k_
     exl : (A × B) →k A
     exr : (A × B) →k B
     dup : A →k (A × A)
 open Cartesian ⦃ … ⦄ public
+
+_△_ : ⦃ _ : Cartesian _→k_ ⦄ → (A →k C) → (A →k D) → (A →k (C × D))
+f △ g = (f ⊗ g) ∘ dup
 
 instance
   →-Cartesian : Cartesian (λ (A B : Set) → A → B)
@@ -71,22 +87,52 @@ instance
   →-BraidedCat : BraidedCat (λ (A B : Set) → A → B)
   →-BraidedCat = record { swap = λ {(a , b) → b , a} }
 
-record MonoidalP (_→k_ : Set → Set → Set) : Set where
+record ComonoidalP (_→k_ : Set → Set → Set) : Set where
   field
-    _⊗_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
-open MonoidalP ⦃ … ⦄ public
+    ⦃ cocat ⦄ : Category _→k_
+    _⊕_ : (A →k C) → (B →k D) → ((A ⊎ B) →k (C ⊎ D))
+open ComonoidalP ⦃ … ⦄ public
 
 instance
-  →-MonoidalP : MonoidalP (λ (A B : Set) → A → B)
-  →-MonoidalP = record {
-    _⊗_ = λ { f g (a , b) → f a , g b } }
+  →-ComonoidalP : ComonoidalP (λ (A B : Set) → A → B)
+  →-ComonoidalP = record {
+    _⊕_ = λ { f g → (λ { (inj₁ a) → inj₁ (f a) ; (inj₂ b) → inj₂ (g b) }) } }
+
+record Cocartesian _→k_ : Set where
+  field
+    ⦃ _→k_ComonoidalP ⦄ : ComonoidalP _→k_
+    inl : A →k (A ⊎ B)
+    inr : B →k (A ⊎ B)
+    jam : (A ⊎ A) →k A
+open Cocartesian ⦃ … ⦄ public
+
+_▽_ : ⦃ _ : Cocartesian _→k_ ⦄ → (A →k C) → (B →k C) → ((A ⊎ B) →k C)
+f ▽ g = jam ∘ (f ⊕ g)
+
+instance
+  →-Cocartesian : Cocartesian (λ (A B : Set) → A → B)
+  →-Cocartesian = record {
+    inl = inj₁ ;
+    inr = inj₂ ;
+    jam = λ { (inj₁ a) → a ; (inj₂ a) → a }
+   }
 
 record Num (A : Set) : Set where
   field
     _+_ _*_ _-_ : A → A → A
-    abs signum negate : A → A
+    negate : A → A
     fromℕ : ℕ → A
 open Num ⦃ … ⦄ public
+
+-- instance
+--   ℕ-Num : Num ℕ
+--   ℕ-Num = record {
+--      _+_ = _+ℕ_
+--    ; _*_ = _*ℕ_
+--    ; _-_ = _-ℕ_
+--    ; negate = λ b → 0 - b
+--    ; fromℕ = id
+--    }
 
 record NumCat (_→k_ : Set → Set → Set) (A : Set) : Set where
   field
@@ -95,8 +141,8 @@ record NumCat (_→k_ : Set → Set → Set) (A : Set) : Set where
 open NumCat ⦃ … ⦄ public
 
 instance
-  →-Num : ⦃ _ : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
-  →-Num = record {
+  →-NumCat : ⦃ _ : Num A ⦄ → NumCat (λ (B C : Set) → B → C) A
+  →-NumCat = record {
       _+c_ = uncurry _+_
     ; _*c_ = uncurry _*_
     ; _-c_ = uncurry _-_
