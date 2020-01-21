@@ -16,7 +16,7 @@ open import Relation.Binary.PropositionalEquality as PE hiding ([_];Extensionali
 open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
 open import Data.Nat using (ℕ;_+_;_*_;_^_)
-open import Data.Fin using (Fin)
+open import Data.Fin using (Fin;splitAt;raise;inject+)
 
 open import Classes hiding (_+_;_*_)
 
@@ -192,19 +192,23 @@ fork = record {
   ; to∘from = refl
   }
 
-.joinInj : {h : A ⊎ B → C} → (h ∘ inj₁) ▽ (h ∘ inj₂) ≡ h
-joinInj {h} = extensionality (λ { (inj₁ x) → refl ; (inj₂ y) → refl })
-
 join : (A → C) × (B → C) ≃ (A ⊎ B → C)
-join = record {
-    to = uncurry _▽_
+join = record
+  { to = uncurry _▽_
   ; from = λ h → (h ∘ inj₁ , h ∘ inj₂)
   ; from∘to = refl
-  -- ; to∘from = joinInj
   ; to∘from = λ {h} → extensionality (λ { (inj₁ x) → refl ; (inj₂ y) → refl })
   }
 
--- postulate
---   fin+ : ∀ {m n : ℕ} → Fin (m + n) ≃ Fin m ⊎ Fin n
---   fin× : ∀ {m n : ℕ} → Fin (m * n) ≃ Fin m × Fin n
---   fin^ : ∀ {m n : ℕ} → Fin (m ^ n) ≃ Fin n → Fin m
+postulate
+  fin+ : ∀ {m n : ℕ} → Fin (m + n) ≃ Fin m ⊎ Fin n
+  fin× : ∀ {m n : ℕ} → Fin (m * n) ≃ Fin m × Fin n
+  fin^ : ∀ {m n : ℕ} → Fin (m ^ n) ≃ Fin n → Fin m
+
+-- fin+ : ∀ {m n : ℕ} → Fin (m + n) ≃ Fin m ⊎ Fin n
+-- fin+ {m} {n} = record
+--   { to = splitAt m
+--   ; from = inject+ n ▽ raise m
+--   ; from∘to = {!!}
+--   ; to∘from = {!!}
+--   }
