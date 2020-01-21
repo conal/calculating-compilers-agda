@@ -9,12 +9,21 @@ private
   variable
    A B C D : Set
 
-open import Data.Product using (_×_;_,_)
-open import Relation.Binary.PropositionalEquality as PE
+open import Function using (_∘′_)
+open import Data.Product using (_×_;_,_;<_,_>;uncurry)
+open import Data.Sum using (_⊎_;[_,_];inj₁;inj₂)
+open import Relation.Binary.PropositionalEquality as PE hiding ([_];Extensionality)
 open PE.≡-Reasoning
 open import Agda.Builtin.Equality.Rewrite
+open import Data.Nat using (ℕ;_+_;_*_;_^_)
+open import Data.Fin using (Fin)
 
-open import Classes
+open import Classes hiding (_+_;_*_)
+
+open import Axiom.Extensionality.Propositional using (Extensionality; ExtensionalityImplicit)
+postulate
+  .extensionality : ∀ {α β} → Extensionality α β
+  -- .extensionality-imp : ∀ {α β} → ExtensionalityImplicit α β
 
 infix 0 _≃_
 record _≃_ (A B : Set) : Set where
@@ -152,7 +161,7 @@ instance
     }
 
 
--- Can I define _≣_ as a category? Try:
+-- Can I define _≡_ as a category? Try:
 -- 
 -- instance
 --   ≡-Category  : Category _≡_
@@ -172,3 +181,30 @@ instance
 -- I think the issue here is that ≣ relates values (elements of types of kind
 -- Set), but Category assumes domain & codomain of being types rather than
 -- values. Can I simply abstract Set out of Category?
+
+-- Some specific isomorphisms
+
+fork : (A → C) × (A → D) ≃ (A → (C × D))
+fork = record {
+    to = uncurry _△_
+  ; from = λ h → (exl ∘ h , exr ∘ h)
+  ; from∘to = refl
+  ; to∘from = refl
+  }
+
+.joinInj : {h : A ⊎ B → C} → (h ∘ inj₁) ▽ (h ∘ inj₂) ≡ h
+joinInj {h} = extensionality (λ { (inj₁ x) → refl ; (inj₂ y) → refl })
+
+join : (A → C) × (B → C) ≃ (A ⊎ B → C)
+join = record {
+    to = uncurry _▽_
+  ; from = λ h → (h ∘ inj₁ , h ∘ inj₂)
+  ; from∘to = refl
+  -- ; to∘from = joinInj
+  ; to∘from = λ {h} → extensionality (λ { (inj₁ x) → refl ; (inj₂ y) → refl })
+  }
+
+-- postulate
+--   fin+ : ∀ {m n : ℕ} → Fin (m + n) ≃ Fin m ⊎ Fin n
+--   fin× : ∀ {m n : ℕ} → Fin (m * n) ≃ Fin m × Fin n
+--   fin^ : ∀ {m n : ℕ} → Fin (m ^ n) ≃ Fin n → Fin m
