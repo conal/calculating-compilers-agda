@@ -148,3 +148,15 @@ instance
     ; _-c_ = uncurry _-_
     ; negate-c = negate
     }
+
+record Closed _→k_ : Set where
+  field
+    ⦃ _→k_MonoidalP ⦄ : MonoidalP _→k_
+    _⇒_ : (A →k B) → (C →k D) → ((B → C) →k (A → D))
+open Closed ⦃ … ⦄ public
+
+instance
+  →-Closed : Closed (λ (A B : Set) → A → B)
+  →-Closed = record {
+    _⇒_ = λ { f h g → h ∘ g ∘ f }
+   }
