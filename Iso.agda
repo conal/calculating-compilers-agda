@@ -9,7 +9,7 @@ private
   variable
    A B C D : Set
 
-open import Function using (_∘′_)
+open import Function using (_∘′_;λ-)
 open import Data.Product using (_×_;_,_;<_,_>;uncurry)
 open import Data.Sum using (_⊎_;[_,_];inj₁;inj₂)
 open import Relation.Binary.PropositionalEquality as PE hiding ([_];Extensionality)
@@ -23,7 +23,7 @@ open import Classes hiding (_+_;_*_)
 open import Axiom.Extensionality.Propositional using (Extensionality; ExtensionalityImplicit)
 postulate
   .extensionality : ∀ {α β} → Extensionality α β
-  -- .extensionality-imp : ∀ {α β} → ExtensionalityImplicit α β
+  .extensionality-imp : ∀ {α β} → ExtensionalityImplicit α β
 
 infix 0 _≃_
 record _≃_ (A B : Set) : Set where
@@ -45,6 +45,8 @@ open _≃_ public
 -- Apparently not. See https://github.com/conal/calculating-compilers-agda/issues/5
 -- and https://github.com/agda/agda/issues/4369 .
 
+.from∘to-F : (f : A ≃ B) → from f ∘ to f ≡ id
+from∘to-F A≅B = extensionality (λ- (from∘to A≅B))
 
 _⁻¹ : (A ≃ B) → (B ≃ A)
 A≃B ⁻¹ = record { to = from A≃B; from = to A≃B; from∘to = to∘from A≃B; to∘from = from∘to A≃B }
@@ -160,6 +162,63 @@ instance
                     }
     }
 
+instance
+  ≃-Closed : Closed _≃_
+  ≃-Closed = record {
+    _⇒_ = λ { f h → record
+               { to = to f ⇒ to h
+               ; from = from f ⇒ from h
+               ; from∘to = λ { { g } →
+                   begin
+                     (from f ⇒ from h) ((to f ⇒ to h) g)
+                   ≡⟨⟩
+                     (from f ⇒ from h) (to h ∘ g ∘ to f)
+                   ≡⟨⟩
+                     from h ∘ (to h ∘ g ∘ to f) ∘ from f
+                   ≡⟨⟩
+                     (from h ∘ to h) ∘ g ∘ (to f ∘ from f)
+                   ≡⟨⟩
+                     (λ x → (from h ∘ to h) (g ((to f ∘ from f) x)))
+                   ≡⟨⟩
+                     (λ x → (from h ∘ to h) (g (to f (from f x))))
+                   -- ≡⟨⟩
+                   --   (λ x → from h (to h (g (to f (from f x)))))
+                   ≡⟨⟩
+                     (λ x → from h (to h (g (to f (from f x)))))
+                   ≡⟨ extensionality (λ x → from∘to h) ⟩
+                     (λ x → g (to f (from f x)))
+                   ≡⟨ extensionality (λ x → cong g (to∘from f)) ⟩
+                     (λ x → g x)
+                   ≡⟨⟩
+                     g
+                   ∎ }
+               ; to∘from = λ { { g } →
+                   begin
+                     (to f ⇒ to h) ((from f ⇒ from h) g)
+                   ≡⟨⟩
+                     (to f ⇒ to h) (from h ∘ g ∘ from f)
+                   ≡⟨⟩
+                     to h ∘ (from h ∘ g ∘ from f) ∘ to f
+                   ≡⟨⟩
+                     (to h ∘ from h) ∘ g ∘ (from f ∘ to f)
+                   ≡⟨⟩
+                     (λ x → (to h ∘ from h) (g ((from f ∘ to f) x)))
+                   ≡⟨⟩
+                     (λ x → (to h ∘ from h) (g (from f (to f x))))
+                   ≡⟨⟩
+                     (λ x → to h (from h (g (from f (to f x)))))
+                   ≡⟨ extensionality (λ x → to∘from h) ⟩
+                     (λ x → g (from f (to f x)))
+                   ≡⟨ extensionality (λ x → cong g (from∘to f)) ⟩
+                     (λ x → g x)
+                   ≡⟨⟩
+                     g
+                   ∎ 
+                 }
+               }
+            }
+     }
+
 
 -- Can I define _≡_ as a category? Try:
 -- 
@@ -212,3 +271,4 @@ postulate
 --   ; from∘to = {!!}
 --   ; to∘from = {!!}
 --   }
+
