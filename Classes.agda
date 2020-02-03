@@ -15,16 +15,16 @@ open import Agda.Builtin.Equality.Rewrite
 private
   variable
    A B C D U V Z : Set
-   _→k_ : Set → Set → Set
+   _↝_ : Set → Set → Set
 
-record Category (_→k_ : Set → Set → Set) : Set where
+record Category (_↝_ : Set → Set → Set) : Set where
   infixr 5 _∘_
   field
-    id   : A →k A
-    _∘_  : (B →k C) → (A →k B) → (A →k C)
-    .id-l  : ∀ {f : A →k B} → id ∘ f ≡ f
-    .id-r  : ∀ {f : A →k B} → f ∘ id ≡ f
-    .assoc : ∀ {h : C →k D} {g : B →k C} {f : A →k B}
+    id   : A ↝ A
+    _∘_  : (B ↝ C) → (A ↝ B) → (A ↝ C)
+    .id-l  : ∀ {f : A ↝ B} → id ∘ f ≡ f
+    .id-r  : ∀ {f : A ↝ B} → f ∘ id ≡ f
+    .assoc : ∀ {h : C ↝ D} {g : B ↝ C} {f : A ↝ B}
            → (h ∘ g) ∘ f ≡ h ∘ (g ∘ f)
 open Category ⦃ … ⦄ public
 
@@ -37,10 +37,10 @@ instance
     id-r = refl ;
     assoc = refl }
 
-record MonoidalP (_→k_ : Set → Set → Set) : Set where
+record MonoidalP (_↝_ : Set → Set → Set) : Set where
   field
-    ⦃ cat ⦄ : Category _→k_
-    _⊗_ : (A →k C) → (B →k D) → ((A × B) →k (C × D))
+    ⦃ cat ⦄ : Category _↝_
+    _⊗_ : (A ↝ C) → (B ↝ D) → ((A × B) ↝ (C × D))
 open MonoidalP ⦃ … ⦄ public
 
 instance
@@ -48,15 +48,15 @@ instance
   →-MonoidalP = record {
     _⊗_ = λ { f g (a , b) → (f a , g b) } }
 
-record Cartesian _→k_ : Set where
+record Cartesian _↝_ : Set where
   field
-    ⦃ _→k_MonoidalP ⦄ : MonoidalP _→k_
-    exl : (A × B) →k A
-    exr : (A × B) →k B
-    dup : A →k (A × A)
+    ⦃ _↝_MonoidalP ⦄ : MonoidalP _↝_
+    exl : (A × B) ↝ A
+    exr : (A × B) ↝ B
+    dup : A ↝ (A × A)
 open Cartesian ⦃ … ⦄ public
 
-_△_ : ⦃ _ : Cartesian _→k_ ⦄ → (A →k C) → (A →k D) → (A →k (C × D))
+_△_ : ⦃ _ : Cartesian _↝_ ⦄ → (A ↝ C) → (A ↝ D) → (A ↝ (C × D))
 f △ g = (f ⊗ g) ∘ dup
 
 instance
@@ -66,10 +66,10 @@ instance
     exr = proj₂ ;
     dup = λ a → (a , a) }
 
-record AssociativeCat (_→k_ : Set → Set → Set) : Set where
+record AssociativeCat (_↝_ : Set → Set → Set) : Set where
   field
-    rassoc : ((A × B) × C) →k (A × (B × C))
-    lassoc : (A × (B × C)) →k ((A × B) × C)
+    rassoc : ((A × B) × C) ↝ (A × (B × C))
+    lassoc : (A × (B × C)) ↝ ((A × B) × C)
 open AssociativeCat ⦃ … ⦄ public
 
 instance
@@ -78,19 +78,19 @@ instance
     rassoc = λ { ((a , b) , c) → a , b , c } ;
     lassoc = λ { (a , b , c) → (a , b) , c } }
 
-record BraidedCat (_→k_ : Set → Set → Set) : Set where
+record BraidedCat (_↝_ : Set → Set → Set) : Set where
   field
-    swap : (A × B) →k (B × A)
+    swap : (A × B) ↝ (B × A)
 open BraidedCat ⦃ … ⦄ public
 
 instance
   →-BraidedCat : BraidedCat (λ (A B : Set) → A → B)
   →-BraidedCat = record { swap = λ {(a , b) → b , a} }
 
-record ComonoidalP (_→k_ : Set → Set → Set) : Set where
+record ComonoidalP (_↝_ : Set → Set → Set) : Set where
   field
-    ⦃ cocat ⦄ : Category _→k_
-    _⊕_ : (A →k C) → (B →k D) → ((A ⊎ B) →k (C ⊎ D))
+    ⦃ cocat ⦄ : Category _↝_
+    _⊕_ : (A ↝ C) → (B ↝ D) → ((A ⊎ B) ↝ (C ⊎ D))
 open ComonoidalP ⦃ … ⦄ public
 
 instance
@@ -98,15 +98,15 @@ instance
   →-ComonoidalP = record {
     _⊕_ = λ { f g → (λ { (inj₁ a) → inj₁ (f a) ; (inj₂ b) → inj₂ (g b) }) } }
 
-record Cocartesian _→k_ : Set where
+record Cocartesian _↝_ : Set where
   field
-    ⦃ _→k_ComonoidalP ⦄ : ComonoidalP _→k_
-    inl : A →k (A ⊎ B)
-    inr : B →k (A ⊎ B)
-    jam : (A ⊎ A) →k A
+    ⦃ _↝_ComonoidalP ⦄ : ComonoidalP _↝_
+    inl : A ↝ (A ⊎ B)
+    inr : B ↝ (A ⊎ B)
+    jam : (A ⊎ A) ↝ A
 open Cocartesian ⦃ … ⦄ public
 
-_▽_ : ⦃ _ : Cocartesian _→k_ ⦄ → (A →k C) → (B →k C) → ((A ⊎ B) →k C)
+_▽_ : ⦃ _ : Cocartesian _↝_ ⦄ → (A ↝ C) → (B ↝ C) → ((A ⊎ B) ↝ C)
 f ▽ g = jam ∘ (f ⊕ g)
 
 instance
@@ -134,10 +134,10 @@ open Num ⦃ … ⦄ public
 --    ; fromℕ = id
 --    }
 
-record NumCat (_→k_ : Set → Set → Set) (A : Set) : Set where
+record NumCat (_↝_ : Set → Set → Set) (A : Set) : Set where
   field
-    _+c_ _*c_ _-c_ : (A × A) →k A
-    negate-c : A →k A
+    _+c_ _*c_ _-c_ : (A × A) ↝ A
+    negate-c : A ↝ A
 open NumCat ⦃ … ⦄ public
 
 instance
@@ -149,10 +149,10 @@ instance
     ; negate-c = negate
     }
 
-record Closed _→k_ : Set where
+record Closed _↝_ : Set where
   field
-    ⦃ _→k_MonoidalP ⦄ : MonoidalP _→k_
-    _⇒_ : (A →k B) → (C →k D) → ((B → C) →k (A → D))
+    ⦃ _↝_MonoidalP ⦄ : MonoidalP _↝_
+    _⇒_ : (A ↝ B) → (C ↝ D) → ((B → C) ↝ (A → D))
 open Closed ⦃ … ⦄ public
 
 instance
